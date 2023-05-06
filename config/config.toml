@@ -1,0 +1,47 @@
+[option]
+decoder = 'v3'
+encoder = 'v3'
+
+[site.dan]
+name = 'Danbooru'
+host = 'danbooru.donmai.us'
+path = 'posts/{x}'
+
+[site.gel]
+name = 'Gelbooru'
+host = 'gelbooru.com'
+path = 'index.php'
+query = 'page=post&s=view&id={x}'
+
+[site.kona]
+name = 'Konachan'
+host = 'konachan.com'
+path = 'post/show/{x}'
+
+[site.pixiv]
+name = 'Pixiv'
+host = 'www.pixiv.net'
+path = 'en/artworks/{x[:x.find("_")]}'
+fragment = '{"" if (n:=int(x[x.find("p")+1:]))==0 else n+1}'
+normalize = '{x if "_p" in x else x + "_p0"}'
+
+[site.sank]
+name = 'Sankaku'
+host = 'chan.sankakucomplex.com'
+path = 'post/show/{x}'
+
+[site.tweet]
+name = 'Twitter'
+host = 'twitter.com'
+path = '{"/status/".join(x.split(",")[:2]) if "," in x else f"i/web/status/{x}"}'
+
+[site.yandere]
+name = 'Yandere'
+host = 'yande.re'
+path = 'post/show/{x}'
+
+[site.yt]
+name = 'YouTube'
+host = 'www.youtube.com'
+path = 'watch'
+query = 'v={x}'

@@ -1,0 +1,199 @@
+Coded and conventional keys:
+
+a:
+    desc:   Author, Artist
+    init:   any
+    notes:  This is handled specially by some encoders.
+
+c:
+    desc:   Character
+    init:   any
+    short:  value
+    long:   value
+
+ch:
+    desc:   Chapter
+    init:   any
+    short:  value
+    long:   value
+
+cx:
+    desc:   Character-crossover
+    init:   any
+    short:  value
+    long:   value
+
+dan:
+    desc:   [Danbooru](https://danbooru.donmai.us/) item.
+    init:   number
+    short:  value
+    long:   ‘https://danbooru.donmai.us/posts/’ value
+    class:  Danbooru
+
+date:
+    desc:   Date
+    init:   any
+    short:  value
+    long:   value
+    notes:  This might get a class and parsing in the future.
+
+doi:
+    desc:   Document Object Identifier
+    accept: TODO
+    short:  prefix ‘,’ suffix
+    long:   (‘doi:’ prefix ‘/’ suffixᵖ) | uri
+    class:  DOI
+
+e:
+    desc:   Episode
+    init:   any
+    short:  value
+    long:   value
+
+ean:
+    desc:   International Article Number
+    accept: ean13 | sbn | isbn | ismn | issn | upc-a
+    short:  value
+    long:   ‘urn:ean13:’ value
+
+file:
+    desc:   Local file path.
+    accept: path
+    short:  value
+    long:   value
+    class:  File
+
+gel:
+    desc:   [Gelbooru](https://gelbooru.com/) item.
+    init:   number
+    short:  value
+    long:   ‘https://gelbooru.com/index.php?page=post&s=view&id=’ value
+    class:  Gelbooru
+
+info:
+    desc:   ‘info’ URI
+    accept: uri
+    short:  uri
+    long:   uri
+    class:  Info
+
+isbn:
+    desc:   International Standard Book Number
+    accept: isbn
+    short:  isbn
+    long:   isbn
+    class:  ISBN
+
+ismn:
+    desc:   International Standard Music Number
+    accept: ismn
+    short:  ismn
+    long:   ismn
+    class:  ISMN
+
+issn:
+    desc:   International Standard Serial Number
+    accept: issn
+    short:  issn
+    long:   issn
+    class:  ISSN
+
+j:
+    desc:   Enclosing work (journal, album, etc.)
+
+lang:
+    desc:   Language
+    init:   any
+    short:  value
+    long:   value
+    notes:  Might get a class with ISO-639 interpretation in the future.
+
+lccn:
+    desc:   Library of Congress Catalog Number
+    accept: lccn
+    short:  lccn
+    long:   lccn
+    class:  LCCN
+
+n:
+    desc:   Sequence number (track, issue, etc.)
+    notes:  Handled specially by some encoders.
+
+p:
+    desc:   page(s)
+
+pixiv:
+    desc:   [Pixiv](https://www.pixiv.net/) item.
+    init:   pixiv
+    short:  value
+    long:   ‘https://www.pixiv.net/en/artworks/’ id [‘#’ item]
+    class:  Pixiv
+
+sub:
+    desc:   Subtitle language
+    init:   any
+    short:  value
+    long:   value
+    notes:  Might get a class with ISO-639 interpretation in the future.
+
+t:
+    desc:   Timestamp (within a work; for points in time use `date`).
+    init:   any
+    short:  value
+    long:   value
+    notes:  This might get a class and parsing in the future.
+
+tcom:
+    desc:   Composer
+    init:   any
+    short:  value
+    long:   value
+    notes:  Named for the ID3v2 tag.
+
+text:
+    desc:   Lyricist
+    init:   any
+    short:  value
+    long:   value
+    notes:  Named for the ID3v2 tag.
+
+tweet:
+    desc:   [Twitter](https://twitter.com/) post.
+    init:   [account ‘,’] post
+    short:  value
+    long:   url
+    class:  Twitter
+
+uri:
+    desc:   Universal Resource Identifier
+    init:   uri
+    short:  uri
+    long:   uri
+    class:  URI
+
+url:
+    desc:   Universal Resource Locator
+    init:   url
+    short:  url
+    long:   url
+    class:  URL
+
+urn:
+    desc:   Universal Resource Name
+    init:
+    short:
+    long:
+    class:  URN
+
+v:
+    desc:   Volume (of a multi-volume work)
+    init:   any
+    short:  value
+    long:   value
+
+yt:
+    desc:   YouTube video
+    init:   youtube id
+    short:  value
+    long:   ‘https://www.youtube.com/watch?v=’ value
+    class:  YouTube
