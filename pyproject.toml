@@ -14,6 +14,9 @@ requires-python = ">=3.11"
 fna = "fna:main"
 fnaffle = "extra.fnaffle:main"
 
+[project.urls]
+repository = "https://codeberg.org/datatravelandexperiments/fna"
+
 [tool.coverage.run]
 omit = ["/usr/*"]
 
