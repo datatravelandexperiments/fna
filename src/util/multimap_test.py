@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Test MultiMap"""
+"""Test MultiMap."""
 
 from typing import TypeVar
 
@@ -9,7 +9,7 @@ CASES_KEY_LIST = {
     'isbn': ['0-8044-2957-X', '0-201-89683-4', '0-07-034207-5'],
     'ismn': ['M69200-628-2'],
     'issn': ['1351-5381'],
-    'ean13': ['453-453012894-2', '1-23456-78901-2']
+    'ean13': ['453-453012894-2', '1-23456-78901-2'],
 }
 
 CASES_KEY_VALUE = [(k, v) for k, vs in CASES_KEY_LIST.items() for v in vs]
@@ -22,12 +22,6 @@ def mk(kld: dict[str, list[str]]) -> MultiMap:
     return d
 
 T = TypeVar('T')
-
-def combine(r: list[T], i: T):
-    return r + [i]
-
-def kv(k: str, v: str) -> str:
-    return f'{k}:{v}'
 
 def test_multimap_empty():
     d: MultiMap[str, int] = MultiMap()
@@ -76,7 +70,7 @@ def test_multimap_len():
 
 def test_multimap_repr():
     d = mk(CASES_KEY_LIST)
-    assert repr(d) == f'MultiMap({repr(CASES_KEY_LIST)})'
+    assert repr(d) == f'MultiMap({CASES_KEY_LIST!r})'
     e: MultiMap[str, int] = MultiMap()
     assert repr(e) == 'MultiMap({})'
 
@@ -98,18 +92,18 @@ def test_multimap_keys():
 
 def test_multimap_pairs():
     d = mk(CASES_KEY_LIST)
-    for a, b in zip(d.pairs(), CASES_KEY_VALUE):
+    for a, b in zip(d.pairs(), CASES_KEY_VALUE, strict=True):
         assert a == b
 
 def test_multimap_lists():
     d = mk(CASES_KEY_LIST)
-    for a, b in zip(d.lists(), CASES_KEY_LIST.items()):
+    for a, b in zip(d.lists(), CASES_KEY_LIST.items(), strict=True):
         assert a == b
 
 def test_multimap_add():
     d = mk(CASES_KEY_LIST)
     assert len(d) == 4
-    for k in d.keys():  # pylint:disable=consider-using-dict-items
+    for k in d:
         assert d[k] == CASES_KEY_LIST[k]
 
 def test_multimap_add_duplicate():
@@ -171,28 +165,6 @@ def test_multimap_sortvalues():
     e.sortvalues()
     assert e['isbn'] == ['0-07-034207-5', '0-201-89683-4', '0-8044-2957-X']
     assert e['ean13'] == ['1-23456-78901-2', '453-453012894-2']
-
-def test_multimap_reduce_pairs():
-    d = mk(CASES_KEY_LIST)
-    sr = d.reduce_pairs(combine, kv, [])
-    sx = [kv(k, v) for k, v in CASES_KEY_VALUE]
-    assert sr == sx
-
-    tx = ";".join(sx)
-    tr = d.reduce_pairs(lambda r, i: f'{r};{i}', kv)
-    assert tr == tx
-
-    e = MultiMap()
-    ts = e.reduce_pairs(  # pragma: no branch
-        lambda r, i: f'{r};{i}', lambda k, v: f'{k}:{v}')
-    assert ts is None
-
-def test_multimap_reduce_lists():
-    d = mk(CASES_KEY_LIST)
-    mx = [f'{k}:{",".join(v)}' for k, v in CASES_KEY_LIST.items()]
-    mr = d.reduce_lists(combine,
-                        lambda k, v: f'{k}:{",".join(str(i) for i in v)}', [])
-    assert mr == mx
 
 def test_multimap_submap():
     d = mk(CASES_KEY_LIST)

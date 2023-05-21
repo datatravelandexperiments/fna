@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Test EAN13"""
+"""Test EAN13."""
 
 import pytest
 
@@ -34,32 +34,33 @@ CASES = [
 ]
 # yapf: enable
 
-@pytest.mark.parametrize("i,out", ((i, out) for i, key, cls, out in CASES))
+@pytest.mark.parametrize(('i', 'out'), ((i, out) for i, key, cls, out in CASES))
 def test_is_valid_ean13(i, out):
     assert is_valid_ean13(i) is False
     assert is_valid_ean13(out) is True
 
-@pytest.mark.parametrize("i,out", ((i, out) for i, key, cls, out in CASES))
+@pytest.mark.parametrize(('i', 'out'), ((i, out) for i, key, cls, out in CASES))
 def test_to13(i, out):
     """Verify conversion to 13 digits."""
     assert to13(i) == out
 
-@pytest.mark.parametrize("key,out", ((key, out) for i, key, cls, out in CASES))
+@pytest.mark.parametrize(('key', 'out'),
+                         ((key, out) for i, key, cls, out in CASES))
 def test_key13(key, out):
     """Verify conversion to 13 digits."""
     assert key13(out) == key
 
-@pytest.mark.parametrize("i,out", ((i, out) for i, key, cls, out in CASES))
+@pytest.mark.parametrize(('i', 'out'), ((i, out) for i, key, cls, out in CASES))
 def test_ean13(i, out):
     e = EAN13(i)
     assert str(e) == out
     assert int(e) == int(out)
 
 def test_ean13_value_error():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='1'):
         _ = EAN13('1')
 
-@pytest.mark.parametrize("i,out", ((i, out) for i, key, cls, out in CASES))
+@pytest.mark.parametrize(('i', 'out'), ((i, out) for i, key, cls, out in CASES))
 def test_ean13_to_uri(i, out):
     e = EAN13(i)
     uri = URI(e)

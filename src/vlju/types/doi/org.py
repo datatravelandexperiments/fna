@@ -1,5 +1,4 @@
-from collections.abc import Mapping, Sequence
-from typing import cast
+from collections.abc import Sequence
 
 from vlju.types.doi import DOI
 
@@ -11940,7 +11939,7 @@ ORGANIZATION = {
                "of Forests Russian Academy of Sciences",
         31510: "Interface Tecnologica",
         31511: "Elk Education Consultant Private Limited",
-        31512: "Universidade Regional Integrada do Alto U​ruguai"
+        31512: "Universidade Regional Integrada do Alto U\u200bruguai"
                "e das Missoes",
         31513: "Revista Linguistica",
         31514: "Revista Liberato",
@@ -11949,7 +11948,7 @@ ORGANIZATION = {
         31517: "Revista Saberes da Amazonia",
         31518: "Institute of History of the Russian Academy of Sciences",
         31519: "Academus Publishing",
-        31520: "Institute of Market Problems and Еconomic"
+        31520: "Institute of Market Problems and Economic"
                "and  Ecological Research of the NAS of Ukraine",
         31521: "Mykolayiv National Agrarian University",
         31522: "University of Zagreb, Faculty of Architecture",
@@ -12859,7 +12858,7 @@ ORGANIZATION = {
         32633: "Croatian Biological Society",
         32634: "Agrarian Science",
         32635: "Revista Brasileira De Cancerologia (RBC)",
-        32636: "Institute of Agriculture of Сarpathian Region of NAAS",
+        32636: "Institute of Agriculture of Carpathian Region of NAAS",
         32637: "Perhimpunan Dokter Spesialis Telinga Hidung"
                "Tenggorok Bedah Kepala Leher Indonesia - PERHATI-KL",
         32638: "AEE INTEC",
@@ -13733,7 +13732,7 @@ ORGANIZATION = {
         33406: "MOLESTO: Edebiyat Arastirmalari Dergisi",
         33407: "Institute of Information Technologies and"
                "Learning Tools of NAES of Ukraine",
-        33408: "University of Сivil Protection of the Ministry"
+        33408: "University of Civil Protection of the Ministry"
                "for Emergency Situations of the Republic of Belarus",
         33409: "Toprak Bilimi ve Bitki Besleme Dergisi",
         33410: "Hoseo Archaeological Society",
@@ -14603,7 +14602,7 @@ ORGANIZATION = {
         34167: "The Child Developmental Supporting Center",
         34168: "Institute for Francophone Studies",
         34169: "Central Scientific Research Institute of Armaments"
-               "and Military Equipment of Armed Forces of Ukrainе",
+               "and Military Equipment of Armed Forces of Ukraine",
         34170: "Sophia Prima - Dialogue of Eternal Recurrence",
         34171: "IUMS Press",
         34172: "Maad Rayan Publishing Company",
@@ -16583,7 +16582,7 @@ ORGANIZATION = {
         36811: "RAFT IT and Publications Pvt Limited",
         36812: "Revista Cientifica Pesquisa Agropecuaria Gaucha (PAG)",
         36813: "Badan Kerjasama Pusat Studi Lingkungan se-Indonesia",
-        36814: "Рlant Production Institute nd. a. V. Ya. Yuryev of NAAS",
+        36814: "Plant Production Institute nd. a. V. Ya. Yuryev of NAAS",
         36815: "Universitas Islam Majapahit Mojokerto",
         36816: "Faculty of Archaeology - Fayoum University",
         36817: "Kulugyi szemle",
@@ -16652,7 +16651,7 @@ ORGANIZATION = {
         36869: "PangaderengJurnal hasil penelitian ilmu sosial"
                "dan humaniora,Balai pelestarian nilai budaya sulsel",
         36870: "Institut Teknologi Sains Bandung",
-        36871: "The publishing house - SCIENTIFIC LIВRARY",
+        36871: "The publishing house - SCIENTIFIC LIBRARY",
         36872: "Lepidoptera Research Foundation Inc",
         36873: "Universitas Palangka Raya",
         36874: "Instytut Europy Srodkowej",
@@ -17759,7 +17758,7 @@ ORGANIZATION = {
         37834: "Journal of Contemporary Philology, Ss Cyril"
                "and Methodius University, B Koneski Faculty of Philology",
         37835: "Taras Shevchenko Regional Humanitarian-Pedagogical"
-               "Academy оf Kremenets",
+               "Academy of Kremenets",
         37836: "Center for Assistance to Social Development"
                "named after Mykola Pyrohov",
         37837: "Directorate-General for Rendering Services"
@@ -17827,8 +17826,8 @@ ORGANIZATION = {
         37889: "Perhimpunan Polimer Indonesia (HPI)",
         37890: "Volga State University of Water Transport",
         37891: "Jurusan Pendidikan Fisika FKIP Unipa",
-        37892: "Fеdегаl State Institution of Science Institute"
-               "of Linguistics of the Russian Academy of Sсiеnсеs",
+        37892: "Federal State Institution of Science Institute"
+               "of Linguistics of the Russian Academy of Sciences",
         37893: "Fakultas Hukum Universitas Krisnadwipayana",
         37894: "Anuario IEHS",
         37895: "Skobelkin State Scientific Center of Laser Medicine",
@@ -20258,7 +20257,7 @@ ORGANIZATION = {
         48008: "National Geographical Society of India (NGSI)",
         48009: "International Association for Computer Information",
         48010: "Institute for Philosophy, Political Science"
-               "& Religion Studies of Committee Science of MES оf the RK",
+               "& Religion Studies of Committee Science of MES of the RK",
         48011: "Sociedade Brasileira de Automatica",
         48012: "The Bulletin of Izhevsk State Agricultural Academy",
         48013: "Inlight Publisher",
@@ -21530,15 +21529,12 @@ ORGANIZATION = {
                "History Journal",
         52004: "Journal of the European Mosquito Control Association",
         88888: "Crossref Test",
-    }
+    },
 }
 
 def org(s: DOI | Sequence[int],
-        d = ORGANIZATION) -> str | dict | None:
-    try:
-        k: Sequence[int] = cast(DOI, s).prefix
-    except AttributeError:
-        k = cast(Sequence[int], s)
+        d: dict = ORGANIZATION) -> str | dict | None:
+    k = s.prefix() if isinstance(s, DOI) else s
     while k:
         if k[0] not in d:
             return None

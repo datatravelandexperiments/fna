@@ -18,9 +18,9 @@ def test_docsplit():
 def test_docsplit_list_only():
     a, b = docsplit(f'{A}\n\n{B}\n\n\n\n{C}\n')
     assert a == [A, B, C]
-    assert not b
+    assert b == {}
 
 def test_docsplit_dict_only():
     a, b = docsplit(f'\n\n\n{DK}:  {DV}\n\n{EK}:{EV}')
-    assert not a
+    assert a == []
     assert b == {DK.lower(): DV, EK.lower(): EV}

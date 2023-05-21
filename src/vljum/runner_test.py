@@ -6,12 +6,12 @@ from pathlib import Path
 import pytest
 
 import util.error
-import vljumap
-import vljumap.enc
-import vljumap.factory
 import vlju.types.all
 import vljum.m
 import vljum.runner
+import vljumap
+import vljumap.enc
+import vljumap.factory
 
 def mk(pairs: Iterable[tuple[str, str]] | None = None,
        args: Sequence[str] | None = None) -> vljum.runner.Runner:
@@ -64,8 +64,8 @@ def test_runner_command_delete():
 
 def test_runner_command_dir():
     r = mk(args=['file', 'whatever.jpg'])
-    r.runs('dir /tmp')
-    assert r.m.filename() == Path('/tmp/whatever.jpg')
+    r.runs('dir /blah')
+    assert r.m.filename() == Path('/blah/whatever.jpg')
 
 def test_runner_command_encode(capsys):
     r = mk(MK_IN)
@@ -167,15 +167,15 @@ def test_runner_command_rename(monkeypatch):
 
 def test_runner_command_rename_exists(monkeypatch):
     r = mk(args=['file', D1V3, 'quiet'])
-    monkeypatch.setattr(Path, 'exists', lambda p: True)
-    monkeypatch.setattr(Path, 'samefile', lambda p, q: False)
+    monkeypatch.setattr(Path, 'exists', lambda _: True)
+    monkeypatch.setattr(Path, 'samefile', lambda _1, _2: False)
     with pytest.raises(FileExistsError):
         r.runs('rename')
 
 def test_runner_command_rename_samefile(monkeypatch):
     r = mk(args=['file', D1V3, 'quiet'])
-    monkeypatch.setattr(Path, 'exists', lambda p: True)
-    monkeypatch.setattr(Path, 'samefile', lambda p, q: True)
+    monkeypatch.setattr(Path, 'exists', lambda _: True)
+    monkeypatch.setattr(Path, 'samefile', lambda _1, _2: True)
     r.runs('rename')
 
 def test_runner_command_set():
@@ -250,7 +250,7 @@ def test_runner_url_string(capsys):
 def test_runner_url_none(capsys):
     r = mk(args=['decode', F1V3, 'quiet'])
     r.runs('url')
-    assert capsys.readouterr().out == ''
+    assert not capsys.readouterr().out
 
 def test_runner_help(capsys):
     r = mk()

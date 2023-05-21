@@ -2,10 +2,9 @@
 """Path test."""
 
 import copy
+import pathlib
 
 import pytest
-
-import pathlib
 
 from vlju import Vlju
 from vlju.testutil import CastParams

@@ -7,12 +7,12 @@ import sys
 from collections import defaultdict
 from collections.abc import Mapping, MutableMapping
 from pathlib import Path
-from typing import Any, Self, Type
+from typing import Any, Self, TextIO
 
 import util.io
 
 from util.registry import Registry
-from vlju.types.all import Vlju, File, URI, URL
+from vlju.types.all import URI, URL, File, Vlju
 from vljumap import VljuFactory, VljuMap, enc
 
 VljuArg = Vlju | str | None
@@ -22,6 +22,7 @@ ModeArg = str | None
 
 class VljuM(VljuMap):
     """VljuMap operations."""
+
     default_registry: MutableMapping[str, Registry] = defaultdict(Registry)
 
     def __init__(self, i=None):
@@ -51,7 +52,7 @@ class VljuM(VljuMap):
             else:
                 raise TypeError(i)
 
-    def cast_params(self, t) -> tuple[str | Path, dict]:
+    def cast_params(self, t: object) -> tuple[str | Path, dict]:
         if t is File:
             return (self.filename(), {})
         if t is URI or t is URL:
@@ -73,9 +74,6 @@ class VljuM(VljuMap):
                factory: FactoryArg = None) -> Self:
         self.decoder.get(decoder).decode(self, s, self.factory.get(factory))
         return self
-
-    def dir(self, s: str | Path) -> Self:
-        return self.with_dir(s)
 
     def extract(self, *args: str) -> Self:
         return self.submap(args)
@@ -121,19 +119,16 @@ class VljuM(VljuMap):
         self.original_path = self.modified_path
         return self
 
-    def set(self,
-            k: str,
-            v: VljuArg = None,
-            factory: FactoryArg = None) -> Self:
+    def reset(self,
+              k: str,
+              v: VljuArg = None,
+              factory: FactoryArg = None) -> Self:
         del self[k]
         return self.add(k, v, factory)
 
     def sort(self, *args: str, mode: ModeArg = None) -> Self:
         return self.sortvalues(args or None,
                                lambda v: v.get(self.mode.get(mode)))
-
-    def suffix(self, suffix: str) -> Self:
-        return self.with_suffix(suffix)
 
     def with_dir(self, s: str | Path) -> Self:
         self.modified_path = Path(s) / self.modified_path.name
@@ -153,7 +148,7 @@ class VljuM(VljuMap):
             f.write(self.encoder.get(encoder).encode(self, self.mode.get(mode)))
         return self
 
-    def z(self, file=sys.stderr) -> Self:  # pragma: no coverage
+    def z(self, file: TextIO = sys.stderr) -> Self:  # pragma: no coverage
         print(repr(self), file=file)
         return self
 
@@ -196,7 +191,7 @@ class VljuM(VljuMap):
 
     # Vlju reduction.
 
-    def first(self, k: str | Type[Vlju]) -> Vlju:
+    def first(self, k: str | type[Vlju]) -> Vlju:
         if isinstance(k, str):
             if k in self:
                 return self[k][0]
@@ -215,7 +210,7 @@ class VljuM(VljuMap):
         self.modified_path = s
         return self
 
-    def _url(self, cls: Type[Vlju]) -> Self:
+    def _url(self, cls: type[Vlju]) -> Self:
         # Try hard to get URIs/URLs from the current map.
         out = type(self)()
         strings: list[tuple[str, str]] = []
@@ -231,9 +226,11 @@ class VljuM(VljuMap):
         if strings:
             scheme_slashes_re = re.compile(r'\w+://.+')
             for k, v in strings:
-                if '/' in v and not scheme_slashes_re.fullmatch(v):
-                    v = 'http://' + v
-                u = cls(v)
+                if '/' not in v or scheme_slashes_re.fullmatch(v):
+                    t = v
+                else:
+                    t = 'http://' + v
+                u = cls(t)
                 if u and hasattr(u, 'authority') and u.authority():
                     out.add(k, u)
         return out
@@ -249,7 +246,7 @@ class VljuM(VljuMap):
 
     def __repr__(self) -> str:
         return (f'{type(self).__name__}'
-                f'({repr(dict(self.data))},path={self.modified_path})')
+                f'({dict(self.data)!r},path={self.modified_path})')
 
     @classmethod
     def configure_options(cls, options: Mapping[str, Any]):

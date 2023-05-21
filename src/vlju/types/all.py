@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: MIT
 """Known Vlju subtypes."""
 
-from typing import Type
 
 from vlju import Vlju
 from vlju.types.doi import DOI
@@ -17,7 +16,7 @@ from vlju.types.url import URL
 from vlju.types.urn import URN
 
 # yapf: disable
-VLJU_TYPES: dict[str, Type[Vlju]] = {
+VLJU_TYPES: dict[str, type[Vlju]] = {
     'doi':      DOI,
     'ean':      EAN13,
     'file':     File,

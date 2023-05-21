@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: MIT
 """Test configuration utilities."""
 
-import builtins
 import io
+
 from pathlib import Path
 
 import util.config
@@ -17,7 +17,7 @@ def test_add_env_dir_environ_false(monkeypatch):
     monkeypatch.setattr(Path, 'is_dir', lambda _: False)
     monkeypatch.setenv('EVaR', '/test/dir')
     d = util.config.Dirs().add_env_dir('EVaR')
-    assert not d
+    assert d == []
 
 def test_add_env_dir_default(monkeypatch):
     monkeypatch.setattr(Path, 'is_dir', lambda _: True)
@@ -29,7 +29,7 @@ def test_add_env_dir_default_false(monkeypatch):
     monkeypatch.setattr(Path, 'is_dir', lambda _: False)
     p = Path('/this/works')
     d = util.config.Dirs().add_env_dir('EVaR', p)
-    assert not d
+    assert d == []
 
 def test_add_env_dirs_environ(monkeypatch):
     monkeypatch.setattr(Path, 'is_dir', lambda x: str(x)[1].islower())
@@ -47,7 +47,7 @@ def test_add_env_dirs_default_false(monkeypatch):
     monkeypatch.setattr(Path, 'is_dir', lambda _: False)
     p = [Path('/x'), Path('/y')]
     d = util.config.Dirs().add_env_dirs('EVaR', p)
-    assert not d
+    assert d == []
 
 def test_find_first(monkeypatch):
     monkeypatch.setattr(Path, 'is_dir', lambda _: True)
@@ -77,7 +77,7 @@ def test_xdg_dirs_environ(monkeypatch):
 
 def test_xdg_dirs_no_home(monkeypatch):
     def raise_runtime_error():
-        raise RuntimeError()
+        raise RuntimeError
     p1 = '/home/test'
     p2 = '/etc/test'
     p3 = '/usr/share/test'
@@ -115,28 +115,28 @@ def test_xdg_config(monkeypatch):
 
 def test_read_configs(monkeypatch):
     f = io.BytesIO(b'[options]\nencoder = "v0"\n')
-    monkeypatch.setattr(builtins, 'open', lambda *_: f)
+    monkeypatch.setattr(Path, 'open', lambda *_: f)
     d = util.config.read_cmd_configs('test', [])
     assert d == {'options': {'encoder': 'v0'}}
 
 def test_read_configs_args(monkeypatch):
     f = io.BytesIO(b'[options]\nencoder = "v0"\n')
-    monkeypatch.setattr(builtins, 'open', lambda *_: f)
+    monkeypatch.setattr(Path, 'open', lambda *_: f)
     d = util.config.read_cmd_configs('test', ['meh'])
     assert d == {'options': {'encoder': 'v0'}}
 
 def test_read_configs_bad_toml(monkeypatch, capsys):
     f = io.BytesIO(b'wtf!')
-    monkeypatch.setattr(builtins, 'open', lambda *_: f)
+    monkeypatch.setattr(Path, 'open', lambda *_: f)
     d = util.config.read_cmd_configs('test', [])
-    assert not d
+    assert d == {}
     assert 'config.toml:' in capsys.readouterr().out
 
 def test_read_configs_args_bad_toml(monkeypatch, capsys):
     f = io.BytesIO(b'wtf!')
-    monkeypatch.setattr(builtins, 'open', lambda *_: f)
+    monkeypatch.setattr(Path, 'open', lambda *_: f)
     d = util.config.read_cmd_configs('test', ['meh'])
-    assert not d
+    assert d == {}
     assert 'meh:' in capsys.readouterr().out
 
 def test_nested_update():

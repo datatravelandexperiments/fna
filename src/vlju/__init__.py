@@ -4,7 +4,8 @@
 import util.repr
 
 class Vlju:
-    """Vlju - Top level of the Vlju hierarchy.
+    """
+    Vlju - Top level of the Vlju hierarchy.
 
     A Vlju is at minimum representable as a string.
     Subclasses may have additional structure.
@@ -17,7 +18,7 @@ class Vlju:
     short:  value
     long:   value
     where:
-        value → `_value`
+        value → `_value`
     """
 
     def __init__(self, s: str):
@@ -25,8 +26,10 @@ class Vlju:
             raise TypeError(s)
         self._value = s
 
-    def __eq__(self, other) -> bool:
-        return self._value == other._value
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Vlju):
+            return self._value == other._value  # noqa: SLF001
+        return False
 
     def __repr__(self) -> str:
         return util.repr.mkrepr(self, ['_value'])
@@ -39,10 +42,12 @@ class Vlju:
         """Return the long value."""
         return self._value
 
-    def get(self, key=None, default=None) -> str | None:
+    def get(self,
+            key: str | None = None,
+            default: str | None = None) -> str | None:
         try:
             return self[key]
-        except Exception:   # pylint: disable=broad-exception-caught
+        except KeyError:
             return default
 
     def __getitem__(self, key):

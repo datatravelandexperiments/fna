@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Test LCCN"""
+"""Test LCCN."""
 
 import pytest
 
@@ -20,22 +20,22 @@ CASES = [
 ]
 # yapf: enable
 
-@pytest.mark.parametrize("s,t", CASES)
+@pytest.mark.parametrize(('s', 't'), CASES)
 def test_normalize(s, t):
     assert normalize(s) == t
 
-@pytest.mark.parametrize("s,t", CASES)
+@pytest.mark.parametrize(('s', 't'), CASES)
 def test_lccn(s, t):
     m = LCCN(s)
     assert str(m) == t
 
-@pytest.mark.parametrize("s,t", CASES)
+@pytest.mark.parametrize(('s', 't'), CASES)
 def test_lccn_to_uri(s, t):
     m = LCCN(s)
     uri = URI(m)
     assert str(uri) == f'info:lccn/{t}'
 
-@pytest.mark.parametrize("s,t", CASES)
+@pytest.mark.parametrize(('s', 't'), CASES)
 def test_lccn_to_url(s, t):
     m = LCCN(s)
     url = URL(m)

@@ -1,15 +1,12 @@
-#!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
-
-from collections.abc import Iterable
 
 import argparse
 import sys
 
+from collections.abc import Iterable
 from pathlib import Path
 
 from util.config import read_cmd_configs, xdg_config
-from vlju import Vlju
 from vljum.m import M
 from vljumap import enc
 
@@ -30,7 +27,7 @@ def read_map_files(files: Iterable[Path | str]) -> Maps:
 
 def read_map_file(file: Path | str) -> Maps:
     maps = []
-    with open(file, 'rt', encoding='utf-8') as f:
+    with Path(file).open(encoding='utf-8') as f:
         while line := f.readline():
             dst, op, encoding = line.strip().split(None, 2)
             m = M().decode(encoding, 'v3')
@@ -46,7 +43,7 @@ def sorted_strings(m: M) -> StringListDict:
         d[k] = sorted(str(v) for v in m[k])
     return d
 
-def compare_sorted_lists(a: list, b: list):
+def compare_sorted_lists(a: list, b: list) -> str:
     r = 3
     an = len(a)
     bn = len(b)
@@ -73,7 +70,7 @@ def match_map(op: str, source: StringListDict, target: StringListDict) -> bool:
     ok = {
         '⊆': ('⊂', '='),
         '⊇': ('⊃', '='),
-    }.get(op, (op,))
+    }.get(op, (op, ))
     for k, v in target.items():
         if not (s := source.get(k)):
             return False
@@ -89,7 +86,7 @@ def match_maps(maps: Maps, m: M) -> Path | None:
             return dst
     return None
 
-def main(argv: list[str] | None = None):
+def main(argv: list[str] | None = None) -> int:
     if argv is None:
         argv = sys.argv
     cmd = Path(argv[0]).stem
@@ -168,10 +165,10 @@ def main(argv: list[str] | None = None):
                     print(f'{dst}: {file}')
             elif args.verbose:
                 print(f'no match for {file}')
-        return 0
     except Exception as e:
         print(f'{cmd}: Unhandled exception: {type(e).__name__}{e.args}')
-        raise e
+        raise
+    return 0
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     sys.exit(main())

@@ -36,9 +36,10 @@ def fearmat(template: str,
             values: Mapping[str, Any],
             builtins: Mapping[str, Any] | None = None) -> str:
     if '"""' in template:
-        raise util.error.Error('‘"""’ in ‘template’')
+        msg = '‘"""’ in ‘template’'
+        raise util.error.Error(msg)
     template = 'f"""' + template + '"""'
     if builtins is None:
         builtins = BUILTINS
     g = dict(values) | {'__builtins__': builtins}
-    return str(eval(template, g))
+    return str(eval(template, g))   # noqa: PGH001, eval-used

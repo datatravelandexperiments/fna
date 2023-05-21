@@ -1,19 +1,19 @@
 # SPDX-License-Identifier: MIT
-"""Escape encodings"""
+"""Escape encodings."""
 
 import shlex
 import urllib.parse
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from typing import NamedTuple
 
 UNSAFE_ON_WINDOWS = '"*/:<>?\\|'
 UNSAFE_ON_UNIX = '/'
 UNSAFE_ON_MACOS = ':'
 
-def mktrans_urlish(encode_chars: str):
+def mktrans_urlish(encode_chars: str) -> Mapping:
     return str.maketrans({
-        c: ''.join((f'%{i:02X}' for i in c.encode('utf8')))
+        c: ''.join(f'%{i:02X}' for i in c.encode('utf8'))
         for c in encode_chars + '%'
     })
 
@@ -35,6 +35,7 @@ def mkencode_urllib(quote: Callable[[str, str], str],
 
 class Escape(NamedTuple):
     """Escaping scheme with encode and decode operations."""
+
     encode: Callable[[str], str]
     decode: Callable[[str], str]
 
@@ -60,7 +61,7 @@ path = _register_escape(
 query = _register_escape(
     'query',
     Escape(
-        mkencode_urllib(urllib.parse.quote_plus, ":@?/&="),
+        mkencode_urllib(urllib.parse.quote_plus, ':@?/&='),
         urllib.parse.unquote_plus))
 
 fragment = _register_escape('fragment', query)

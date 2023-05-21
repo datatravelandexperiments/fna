@@ -4,7 +4,8 @@
 from vlju.types.uri import URI, auth
 
 class Info(URI):
-    """Represents an entity in the ‘info’ URI scheme.
+    """
+    Represents an entity in the ‘info’ URI scheme.
 
     short:  uri
     long:   uri
@@ -25,7 +26,7 @@ class Info(URI):
         a = self.authority()
         return str(a.host) if a else ''
 
-    def cast_params(self, t) -> tuple[str, dict]:
+    def cast_params(self, t: object) -> tuple[str, dict]:
         if t is URI:
             return (self._value, {
                 'scheme': self._scheme,

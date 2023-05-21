@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "file-name-attributes"
 version = "0.2.2"
 description = "Manage key/value metadata in file names."
-license.text = "Mit License"
+license.text = "MIT License"
 readme = "README.md"
 requires-python = ">=3.11"
 classifiers = [
@@ -72,6 +72,7 @@ disable = [
     "bad-inline-option",
     "deprecated-pragma",
     "file-ignored",
+    "import-error", # https://github.com/pylint-dev/pylint/issues/7306
     "locally-disabled",
     "raw-checker-failed",
     "suppressed-message",
@@ -87,6 +88,58 @@ include = ["src"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 addopts = "--tb=native"
+
+[tool.ruff]
+src = ["src"]
+namespace-packages = ["src/extra"]
+line-length = 80
+allowed-confusables = ["‘", "’", "–", "—", "‹", "›", "ı"]
+select = ["ALL"]
+ignore = [
+    "ANN002",   # missing-type-args: Nah.
+    "ANN003",   # missing-type-kwargs: Nah.
+    "ANN101", 	# missing-type-self: Nah.
+    "ANN102",   # missing-type-cls: Nah.
+    "ERA",      # eradicate: Complains about yapf: directives.
+    "C901",     # complex-structure: Be direct.
+    "D100",     # undocumented-public-module: Plan to fix.
+    "D101",     # undocumented-public-class: Plan to fix.
+    "D102",     # undocumented-public-method: Plan to fix.
+    "D103",     # undocumented-public-function: Plan to fix.
+    "D104",     # undocumented-public-package: Plan to fix.
+    "D105",     # undocumented-magic-method: We know what they're for.
+    "D107",     # undocumented-public-init: We know what it's for.
+    "D203",     # one-blank-line-before-class: Conflicts with D211.
+    "D212",     # multi-line-summary-first-line: Conflicts with D213.
+    "PLR0912",  # too-many-branches: Be direct.
+    "PLR0913",  # too-many-arguments: Be direct.
+    "PLR2004",  # magic-value-comparison: Be direct.
+    "S314", 	# suspicious-xml-element-tree-usage: defusedxml is not builtin.
+    "T20",      # flake8-print: I like having output.
+]
+
+[tool.ruff.flake8-annotations]
+allow-star-arg-any = true
+ignore-fully-untyped = true # plan to fix.
+mypy-init-return = true
+suppress-dummy-args = true
+suppress-none-returning = true # plan to fix.
+
+[tool.ruff.flake8-quotes]
+inline-quotes = "single"
+
+[tool.ruff.isort]
+lines-after-imports = 1
+lines-between-types = 1
+
+[tool.ruff.per-file-ignores]
+"*_test.py" = [
+    "S101",     # assert
+]
+"*/doi/org.py" = ["Q000"]
+
+[tool.ruff.pylint]
+max-args = 8
 
 [tool.yapf]
 based_on_style = "pep8"

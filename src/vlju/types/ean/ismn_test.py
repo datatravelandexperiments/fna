@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Test ISMN"""
+"""Test ISMN."""
 
 import pytest
 
@@ -15,7 +15,7 @@ CASES = [
 
 NOT_ISMN_CASES = ['9780127450407', 'Not an ISMN']
 
-@pytest.mark.parametrize("ismn,ean", CASES)
+@pytest.mark.parametrize(('ismn', 'ean'), CASES)
 def test_ismn_constructor(ismn, ean):
     i = ISMN(ismn)
     j = ISMN(ean)
@@ -25,19 +25,19 @@ def test_ismn_constructor(ismn, ean):
     assert str(j) == ean
     assert i == j
 
-@pytest.mark.parametrize("i", NOT_ISMN_CASES)
+@pytest.mark.parametrize('i', NOT_ISMN_CASES)
 def test_ismn_constructor_not_ismn(i):
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=i):
         _ = ISMN(i)
 
-@pytest.mark.parametrize("ismn,ean", CASES)
+@pytest.mark.parametrize(('ismn', 'ean'), CASES)
 def test_ismn_lv(ismn, ean):
     i = ISMN(ismn)
     j = ISMN(ean)
     assert i.lv() == ismn
     assert j.lv() == ismn
 
-@pytest.mark.parametrize("ismn,ean", CASES)
+@pytest.mark.parametrize(('ismn', 'ean'), CASES)
 def test_ismn_uri(ismn, ean):
     i = ISMN(ismn)
     j = ISMN(ean)

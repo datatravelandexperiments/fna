@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Checksums"""
+"""Checksums."""
 
 def alt13_checksum(s: str) -> int:
     """Calculate an EAN checksum."""

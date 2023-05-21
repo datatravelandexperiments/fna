@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Test Registry"""
+"""Test Registry."""
 
 import pytest
 
@@ -25,7 +25,7 @@ def test_registry_dict():
     r.update({'a': 1, 'b': 2})
     assert r.get('a') == 1
     assert r.get('b') == 2
-    assert r.keys() == set(('a', 'b'))
+    assert r.keys() == {'a', 'b'}
     with pytest.raises(KeyError):
         _ = r.get('c')
 

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Test io"""
+"""Test io."""
 
 import io
 import sys
@@ -42,10 +42,10 @@ def test_open_output_string_io_is_itself():
 
 def test_open_output_filename_is_openend(mocker):
     filename = 'something'
-    o = mocker.patch('builtins.open', mocker.mock_open())
+    o = mocker.patch('pathlib.Path.open', mocker.mock_open())
     with util.io.open_output(filename) as f:
         fp = f
-    o.assert_called_once_with(filename, 'w', encoding='utf-8')
+    o.assert_called_once_with('w', encoding='utf-8')
     fp.close.assert_called_once()
 
 def test_open_input_none_is_stdin():
@@ -65,8 +65,8 @@ def test_open_input_string_io_is_itself():
 
 def test_open_input_filename_is_openend(mocker):
     filename = 'something'
-    o = mocker.patch('builtins.open', mocker.mock_open())
+    o = mocker.patch('pathlib.Path.open', mocker.mock_open())
     with util.io.open_input(filename) as f:
         fp = f
-    o.assert_called_once_with(filename, 'r', encoding='utf-8')
+    o.assert_called_once_with('r', encoding='utf-8')
     fp.close.assert_called_once()   # pylint: disable=no-member

@@ -1,12 +1,11 @@
 # SPDX-License-Identifier: MIT
-"""MultiMap"""
+"""MultiMap."""
 
 import collections
 import collections.abc
-import functools
 
 from collections.abc import Callable, Iterable
-from typing import Any, Generic, Self, TypeVar
+from typing import Generic, Self, TypeVar
 
 K = TypeVar('K')
 V = TypeVar('V')
@@ -31,14 +30,14 @@ class MultiMap(Generic[K, V]):
         if k in self.data:
             del self.data[k]
 
-    def __contains__(self, k) -> bool:
+    def __contains__(self, k: K) -> bool:
         return (k in self.data) and (self.data[k] != [])
 
     def __len__(self) -> int:
         return len(self.data)
 
     def __repr__(self) -> str:
-        return f'MultiMap({repr(dict(self.data))})'
+        return f'MultiMap({dict(self.data)!r})'
 
     def __iter__(self):
         return iter(self.data)
@@ -59,13 +58,13 @@ class MultiMap(Generic[K, V]):
         return self.data.keys()
 
     def pairs(self):
-        """Yields (k, v), potentially repeating k."""
+        """Yield (k, v), potentially repeating k."""
         for k, vlist in self.data.items():
             for v in vlist:
                 yield (k, v)
 
     def lists(self) -> collections.abc.ItemsView[K, list[V]]:
-        """Yields (k, vlist)"""
+        """Yield (k, vlist)."""
         return self.data.items()
 
     def add(self, k: K, v: V) -> Self:
@@ -77,22 +76,22 @@ class MultiMap(Generic[K, V]):
         self.data[k].remove(v)
         return self
 
-    def pop(self, key: K, default=None):
+    def pop(self, key: K, default: T | None = None) -> V | T | None:
         if self.data[key]:
             return self.data[key].pop()
         return default
 
-    def top(self, k: K):
+    def top(self, k: K) -> V | None:
         if self.data[k]:
             return self.data[k][-1]
         return None
 
-    def extend(self, other) -> Self:
+    def extend(self, other: Self) -> Self:
         for k, v in other.pairs():
             self.add(k, v)
         return self
 
-    def sortkeys(self, keys: Iterable[K] | None = None):
+    def sortkeys(self, keys: Iterable[K] | None = None) -> Self:
         """Put the map keys in alphabetical order, or specified order."""
         if keys is None:
             keys = sorted(self.data.keys())
@@ -105,53 +104,16 @@ class MultiMap(Generic[K, V]):
         self.data.update(old)
         return self
 
-    def sortvalues(self, keys: Iterable[K] | None = None, key=None):
+    def sortvalues(self,
+                   keys: Iterable[K] | None = None,
+                   key: Callable | None = None) -> Self:
         if keys is None:
             keys = self.data.keys()
         for k in keys:
-            self.data[k].sort(key=key)  # type:ignore
+            self.data[k].sort(key=key)  # type: ignore[reportGeneralTypeIssues]
         return self
 
-    def _reduce(
-        self,
-        iterator: Iterable[tuple[K, W]],
-        combine: Callable[[T, Any], T],
-        f: Callable[[K, W], T],
-        initializer: T | None = None,
-        predicate: Callable[[tuple[K, W]], bool] | None = None,
-        empty: T | None = None,
-    ) -> T | None:
-        """Helper for `reduce_pairs()` and `reduce_lists()`."""
-        i = [f(k, v) for k, v in filter(predicate, iterator)]
-        if initializer is None:
-            if not i:
-                return empty
-            return functools.reduce(combine, i)
-        return functools.reduce(combine, i, initializer)
-
-    def reduce_pairs(
-        self,
-        combine: Callable[[T, T], T],
-        f: Callable[[K, V], T],
-        initializer: T | None = None,
-        predicate: Callable[[tuple[K, V]], bool] | None = None,
-        empty: T | None = None,
-    ) -> T | None:
-        return self._reduce(self.pairs(), combine, f, initializer, predicate,
-                            empty)
-
-    def reduce_lists(
-        self,
-        combine: Callable[[T, T], T],
-        f: Callable[[K, list[V]], T],
-        initializer: T | None = None,
-        predicate: Callable[[tuple[K, list[V]]], bool] | None = None,
-        empty: T | None = None,
-    ) -> T | None:
-        return self._reduce(self.lists(), combine, f, initializer, predicate,
-                            empty)
-
-    def submap(self, keys: Iterable[K] | None = None):
+    def submap(self, keys: Iterable[K] | None = None) -> Self:
         if not keys:
             return self
         r = type(self)()

@@ -8,14 +8,15 @@ import re
 import shlex
 import warnings
 
-from collections.abc import Container, Callable, Iterable
-from typing import Any, NamedTuple
+from collections.abc import Callable, Iterable
+from typing import NamedTuple
 
 import util.escape as esc
 
-from vljumap import VljuFactory, VljuMap
-from vlju.types.ean.isbn import is_valid_isbn10, is_valid_isbn13
+from util.error import Error
 from util.multimap import MultiMap
+from vlju.types.ean.isbn import is_valid_isbn10, is_valid_isbn13
+from vljumap import VljuFactory, VljuMap
 
 EncodeCallable = Callable[[VljuMap, str | None], str]
 DecodeCallable = Callable[[VljuMap, str, VljuFactory], VljuMap]
@@ -41,11 +42,12 @@ class Encoder:
     def can_decode(self) -> bool:
         return self.decode != _unimplemented_decode
 
-def _unimplemented_decode(n: VljuMap, s: str, factory: VljuFactory) -> VljuMap:
-    raise NotImplementedError()
+def _unimplemented_decode(_n: VljuMap, _s: str,
+                          _factory: VljuFactory) -> VljuMap:
+    raise NotImplementedError
 
-def _unimplemented_encode(n: VljuMap, mode: str | None = None) -> str:
-    raise NotImplementedError()
+def _unimplemented_encode(_n: VljuMap, _mode: str | None = None) -> str:
+    raise NotImplementedError
 
 # Global registry of named Encoders.
 encoder: dict[str, Encoder] = {}
@@ -122,13 +124,12 @@ def _v3_enc(config: V3Config, n: VljuMap, mode: str | None) -> str:
     title_qjoin = config.title_join.translate(
         esc.mktrans_urlish(config.title_join.strip()))
     title = config.title_join.join(
-        (config.quote.encode(i).replace(config.title_join, title_qjoin)
-         for i in m['title']))
-    attrs = m.reduce_pairs(
-        combine_with(config.attr_join),
-        kv_with(config.attr_kv, config.quote),
-        predicate=except_keys(('title', 'n')),
-        empty='')
+        config.quote.encode(i).replace(config.title_join, title_qjoin)
+        for i in m['title'])
+    attrs = config.attr_join.join(
+        kv_fmt(k, v, config.attr_kv, config.quote)
+        for k, v in m.pairs()
+        if k not in ('title', 'n'))
     attrs = attrs and f'{config.attr_start}{attrs}{config.attr_end}'
     return join_non_empty(' ', sequence, title, attrs)
 
@@ -156,7 +157,7 @@ def _v3_dec_attr(config: V3Config, s: str) -> Iterable[tuple[str, str]]:
     if s.endswith(config.attr_end):
         s = s[:-1]
     else:
-        warnings.warn(f"Expected '{config.attr_end}' after '{s}'")
+        warnings.warn(f"Expected '{config.attr_end}' after '{s}'", stacklevel=0)
     for kv in s.split(config.attr_join.strip()):
         if config.attr_kv in kv:
             k, v = kv.split(config.attr_kv, 1)
@@ -291,12 +292,11 @@ V1_CONFIG = V3Config(esc.unixfile, attr_start='[', attr_end=']', attr_join=',')
 def v1_encode(n: VljuMap, mode: str | None = None) -> str:
     m = n.to_strings(mode)
     r = _v1_enc_author_title(m)
-    a = m.reduce_pairs(
-        combine_with(','),
-        kv_with('=', esc.unixfile),
-        predicate=except_keys(('a', 'title')),
-        empty='')
-    return spj(r, f'[{a}]') if a else r
+    attrs = ','.join(
+        kv_fmt(k, v, '=', esc.unixfile)
+        for k, v in m.pairs()
+        if k not in ('title', 'a'))
+    return spj(r, f'[{attrs}]') if attrs else r
 
 def v1_decode(n: VljuMap, s: str, factory: VljuFactory) -> VljuMap:
     return n.add_pairs(_v1_dec_iter(V1_CONFIG, s), factory)
@@ -305,9 +305,9 @@ v1 = _register_encoder(
     Encoder('v1', v1_encode, v1_decode, V1_DESC, V1_DESCRIPTION))
 
 def _v1_enc_author_title(m: MultiMap) -> str:
-    author = '; '.join((i for i in m['a']))
+    author = '; '.join(i for i in m['a'])
     r = f'{author}:' if author else ''
-    title = ': '.join((i for i in m['title']))
+    title = ': '.join(i for i in m['title'])
     return spj(r, title)
 
 def _v1_dec_iter(config: V3Config, s: str) -> Iterable[tuple[str, str]]:
@@ -352,7 +352,7 @@ def v0_encode(n: VljuMap, mode: str | None = None) -> str:
     m = n.to_strings(mode)
     r = _v1_enc_author_title(m)
     if 'isbn' in m:
-        return spj(r, m["isbn"][0])
+        return spj(r, m['isbn'][0])
     if 'lccn' in m:
         return spj(r, f'lccn={m["lccn"][0]}')
     return r
@@ -375,14 +375,15 @@ V0_RE = re.compile(
 def _v0_dec_iter(s: str):
     if m := V0_RE.fullmatch(s):
         s = m.group('rest')
-    for k, v in _v1_dec_author_title(s):
-        yield (k, v)
+    yield from _v1_dec_author_title(s)
     if m:
         if isbn := m.group('isbn'):
             yield ('isbn', isbn)
-        else:
-            assert (lccn := m.group('lccn')) is not None
+        elif lccn := m.group('lccn'):  # pragma: no branch
             yield ('lccn', lccn)
+        else:  # pragma: no cover
+            message = f'no isbn or lccn in {s}'
+            raise Error(message)
 
 ###############################################################################
 #
@@ -414,17 +415,17 @@ SFC_DESCRIPTION = """
 
 def sfc_encode(n: VljuMap, mode: str | None = None) -> str:
     m = n.to_strings(mode)
-    title = ' - '.join((i for i in m['title']))
-    author = ', '.join((i for i in m['a']))
+    title = ' - '.join(i for i in m['title'])
+    author = ', '.join(i for i in m['a'])
     if author:
         author = f'by {author}'
-    isbn = m["isbn"][0] if 'isbn' in m else ''
+    isbn = m['isbn'][0] if 'isbn' in m else ''
     if 'edition' in m:
-        e = int(m["edition"][0])
+        e = int(m['edition'][0])
         edition = f'{e}{nth(e)} edition'
     else:
         edition = ''
-    date = m["date"][0] if 'date' in m else ''
+    date = m['date'][0] if 'date' in m else ''
     return join_non_empty(' ', title, author, isbn, edition, date)
 
 def sfc_decode(n: VljuMap, s: str, factory: VljuFactory) -> VljuMap:
@@ -524,7 +525,7 @@ SHELL_DESCRIPTION = """
 def shell_encode(n: VljuMap, mode: str | None = None) -> str:
     r = []
     for k, vlist in n.get_lists(mode):
-        v = ' '.join((shlex.quote(v) for v in vlist))
+        v = ' '.join(shlex.quote(v) for v in vlist)
         r.append(f'{k}=({v})')
     return '\n'.join(r)
 
@@ -623,40 +624,19 @@ def _csv_dec_iter(s: str, **kwargs):
 #
 ###############################################################################
 
-def except_keys(klist: Container[str]) -> Callable[[tuple[str, Any]], bool]:
-    """Return a predicate to exclude specified keys."""
+def kv_fmt(k: str, v: str | None, sep: str, e: esc.Escape) -> str:
+    if v:
+        return f'{k}{sep}{e.encode(v)}'
+    return k
 
-    def f(kv: tuple[str, Any]) -> bool:
-        return kv[0] not in klist
-
-    return f
-
-def kv_with(sep: str, e: esc.Escape) -> Callable[[str, str | None], str]:
-    """Return a pairing function using the given separator and encoding."""
-
-    def f(k: str, v: str | None) -> str:
-        if v:
-            return f'{k}{sep}{e.encode(v)}'
-        return k
-
-    return f
-
-def combine_with(sep: str) -> Callable[[str, str], str]:
-    """Return a reduction combining function using the given separator."""
-
-    def f(r: str, i: str) -> str:
-        return f'{r}{sep}{i}'
-
-    return f
-
-def join_non_empty(sep: str, *args):
+def join_non_empty(sep: str, *args: str) -> str:
     """Join non-empty args with the given separator."""
     return sep.join(filter(bool, args))
 
 def spj(s: str, t: str) -> str:
     return join_non_empty(' ', s, t)
 
-def nth(n) -> str:
+def nth(n: int | str) -> str:
     """Return English suffix for ordinal numbers."""
     n = int(n)
     return ('th', 'st', 'nd', 'rd', 'th', 'th', 'th', 'th', 'th', 'th')[n % 10]

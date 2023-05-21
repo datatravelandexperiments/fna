@@ -9,11 +9,13 @@ class ISMN(EAN13):
     def __init__(self, s: str):
         v = as13(s, 'ismn')
         if v is None:
-            raise ValueError(f"value {s} is not an ISMN")
+            msg = f'value {s} is not an ISMN'
+            raise ValueError(msg)
         super().__init__(v, 'ismn')
 
     def lv(self) -> str:
-        assert self._value[:4] == '9790'
+        if self._value[:4] != '9790':  # pragma: no branch
+            raise ValueError(self._value)  # pragma: no cover
         return f'M{self._value[4:]}'
 
     def path(self) -> str:

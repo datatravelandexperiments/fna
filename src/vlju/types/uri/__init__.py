@@ -1,18 +1,19 @@
 # SPDX-License-Identifier: MIT
-"""URI - Vlju representable as a URI"""
+"""URI - Vlju representable as a URI."""
 
 import re
 
 from typing import Any, Self
 
-import util.repr
 import util.escape
+import util.repr
 
 from util.typecheck import needtype
 from vlju import Vlju
 
 class Authority:
     """Authority represents a URI authority."""
+
     host: str
     port: int | None = None
     username: str | None = None
@@ -33,17 +34,27 @@ class Authority:
             if host.startswith('//'):
                 host = host[2 :]
             if '@' in host:
-                assert username is None
                 up, host = host.split('@', 1)
                 if ':' in up:
-                    assert password is None
-                    self.username, self.password = up.split(':', 1)
+                    u, p = up.split(':', 1)
                 else:
-                    self.username = up
+                    u = up
+                    p = None
+                if username is not None and username != u:
+                    message = f'username={username} conflicts with {up}@'
+                    raise ValueError(message)
+                if password is not None and password != p:
+                    message = f'password={password} conflicts with {up}@'
+                    raise ValueError(message)
+                self.username = u
+                self.password = p
             if ':' in host:
-                assert port is None
-                host, p = host.split(':', 1)
-                self.port = int(p)
+                host, pstr = host.split(':', 1)
+                pn = int(pstr)
+                if port is not None and port != pn:
+                    message = f'port={port} conflicts with {host}'
+                    raise ValueError(message)
+                self.port = pn
             self.host = host.lower()
         else:
             raise TypeError
@@ -71,13 +82,12 @@ class Authority:
             r += f':{self.port}'
         return r
 
-    def __eq__(self, other) -> bool:
-        try:
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Authority):
             return (self.host == other.host and self.port == other.port
                     and self.username == other.username
                     and self.password == other.password)
-        except AttributeError:
-            return False
+        return False
 
 AuthorityArg = Authority | str | None
 
@@ -89,7 +99,8 @@ def auth(a: AuthorityArg) -> Authority | None:
     return Authority(a)
 
 class URI(Vlju):
-    """Represents a URI.
+    """
+    Represents a URI.
 
     short:  uri
     long:   uri
@@ -176,7 +187,7 @@ class URI(Vlju):
             (self.spath() if path is None else util.escape.path.encode(path))
             + self.squery() + self.sfragment() + self.sr() + self.sq())
 
-    def cast_params(self, t) -> tuple[str, dict]:
+    def cast_params(self, t: object) -> tuple[str, dict]:
         if t is URI:
             return (self.path(), {
                 'scheme': self._scheme,
@@ -186,7 +197,7 @@ class URI(Vlju):
                 'urnq': self._urnq,
                 'urnr': self._urnr,
                 'sa': self._sa,
-                'ap': self._ap
+                'ap': self._ap,
             })
         raise self.cast_param_error(t)
 
@@ -204,20 +215,21 @@ class URI(Vlju):
             return getattr(self, key)()
         return super().__getitem__(key)
 
-    def __eq__(self, other):
-        try:
-            return (self._value == other._value
-                    and self._scheme == other._scheme
-                    and self._authority == other._authority
-                    and self._query == other._query
-                    and self._fragment == other._fragment
-                    and self._urnq == other._urnq and self._urnr == other._urnr
-                    and self._sa == other._sa and self._ap == other._ap)
-        except AttributeError:
-            return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, URI):
+            return (self._value == other._value  # noqa: SLF001
+                    and self._scheme == other._scheme  # noqa: SLF001
+                    and self._authority == other._authority  # noqa: SLF001
+                    and self._query == other._query  # noqa: SLF001
+                    and self._fragment == other._fragment  # noqa: SLF001
+                    and self._urnq == other._urnq  # noqa: SLF001
+                    and self._urnr == other._urnr  # noqa: SLF001
+                    and self._sa == other._sa  # noqa: SLF001
+                    and self._ap == other._ap)  # noqa: SLF001
+        return False
 
     def __repr__(self) -> str:
-        return util.repr.mkrepr(    # pragma: no cover
+        return util.repr.mkrepr(  # pragma: no cover
             self, ['_value'],
             ['_scheme', '_sa', '_authority', '_query', '_fragment'])
 

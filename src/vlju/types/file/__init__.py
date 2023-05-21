@@ -1,9 +1,7 @@
 # SPDX-License-Identifier: MIT
-"""File - Local file path"""
+"""File - Local file path."""
 
 import pathlib
-
-from typing import Any
 
 import util.escape
 import util.repr
@@ -13,9 +11,10 @@ from vlju.types.url import URL
 
 class File(URI):
     """Represents a local file path."""
+
     _authority = Authority('')
 
-    def __init__(self, s: Any = ''):
+    def __init__(self, s: object = ''):
         # `File` does not use the URI `path` component. Instead, it stores
         # the path as a `pathlib.Path` in `self._file`.
         if hasattr(s, 'cast_params'):
@@ -42,12 +41,12 @@ class File(URI):
     def file(self) -> pathlib.Path:
         return self._file
 
-    def cast_params(self, t) -> tuple[str, dict]:
+    def cast_params(self, t: object) -> tuple[str, dict]:
         if t is URI or t is URL:
             return (str(self._file), {
                 'scheme': 'file',
                 'sa': self._sa,
-                'ap': self._ap
+                'ap': self._ap,
             })
         raise self.cast_param_error(t)
 
@@ -55,7 +54,7 @@ class File(URI):
 
     def __eq__(self, other):
         try:
-            return self._file == other._file
+            return self._file == other._file  # noqa: SLF001
         except AttributeError:
             return False
 

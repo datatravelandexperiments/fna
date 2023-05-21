@@ -1,15 +1,16 @@
 # SPDX-License-Identifier: MIT
 
+import pprint
+
 from copy import deepcopy
 from io import StringIO
 from pathlib import Path
-import pprint
 
 import pytest
 
 from util.registry import Registry
 from vlju.testutil import CastParams
-from vlju.types.all import File, ISBN, URL
+from vlju.types.all import ISBN, URL, File
 from vljum.m import M, V
 
 class TstVlju(V):
@@ -39,8 +40,8 @@ def test_configure_sites():
             'name': 'SiteTest',
             'scheme': 'http',
             'host': 'example.com',
-            'path': 'a/{x}/b'
-        }
+            'path': 'a/{x}/b',
+        },
     })
     pprint.pp(M.typed_factory.kmap)
     m = N().decode('[test=123]').z()
@@ -52,13 +53,13 @@ def test_m_construct_vljumap():
     assert mm.encode() == '[key=value; key=two]'
 
 def test_m_construct_file():
-    m = M(File('/tmp/Title [isbn=1234567890].pdf'))
+    m = M(File('/blah/Title [isbn=1234567890].pdf'))
     assert m.encode('keyvalue') == 'title: Title\nisbn: 9781234567897'
 
 def test_m_construct_path():
-    p = Path('/tmp/Title [isbn=1234567890].pdf')
+    p = Path('/blah/Title [isbn=1234567890].pdf')
     m = M(p)
-    assert m.encode() == ''
+    assert m.encode() == ''  # noqa: compare-to-empty-string
     assert m.original_path == p
 
 def test_m_construct_str():
@@ -70,9 +71,9 @@ def test_m_construct_cast_params():
     assert str(m) == '[a=42]'
 
 def test_m_construct_cast_params_with_path():
-    p = Path('/tmp/Title [isbn=1234567890].pdf')
+    p = Path('/blah/Title [isbn=1234567890].pdf')
     m = M(CastParams(p, {'a': V('42')}))
-    assert str(m.filename()) == '/tmp/[a=42].pdf'
+    assert str(m.filename()) == '/blah/[a=42].pdf'
 
 def test_m_construct_other():
     with pytest.raises(TypeError):
@@ -90,7 +91,7 @@ def test_m_add_vlju():
 def test_m_add_none():
     m = M().add('key')
     assert m.encode() == '[key]'
-    assert str(m['key'][0]) == ''
+    assert str(m['key'][0]) == ''  # noqa: compare-to-empty-string
 
 def test_m_add_explicit_factory():
     m = M().add('isbn', '1234567897', tst_vlju_factory)
@@ -103,31 +104,31 @@ def test_m_add_implicit_factory():
 
 def test_m_decode():
     m = M().decode('[key=value; isbn=1234567890]')
-    assert m.keys() == set(('key', 'isbn'))
+    assert m.keys() == {'key', 'isbn'}
     assert str(m['key'][0]) == 'value'
     assert str(m['isbn'][0]) == '9781234567897'
 
 def test_m_dir():
-    m = M().file('/tmp/f.pdf').dir('/etc')
+    m = M().file('/blah/f.pdf').with_dir('/etc')
     assert m.modified_path == Path('/etc/f.pdf')
 
 def test_m_extract():
     m = M().decode('[key=value; x=1; isbn=1234567890]').extract('key', 'isbn')
-    assert m.keys() == set(('key', 'isbn'))
+    assert m.keys() == {'key', 'isbn'}
     assert str(m['key'][0]) == 'value'
     assert str(m['isbn'][0]) == '9781234567897'
 
 def test_m_file():
-    p = '/tmp/Title [isbn=1234567890].pdf'
+    p = '/blah/Title [isbn=1234567890].pdf'
     m = M().file(p)
     assert m.original_path == Path(p)
-    assert str(m) == '/tmp/Title [isbn=9781234567897].pdf'
+    assert str(m) == '/blah/Title [isbn=9781234567897].pdf'
 
 def test_m_filename():
-    p = '/tmp/[isbn=1234567890].pdf'
+    p = '/blah/[isbn=1234567890].pdf'
     m = M().file(p).add('title', 'Title')
     assert m.original_path == Path(p)
-    assert m.filename() == Path('/tmp/Title [isbn=9781234567897].pdf')
+    assert m.filename() == Path('/blah/Title [isbn=9781234567897].pdf')
 
 def test_m_first_key():
     m = M().decode('[y=1; y=2; x=a]')
@@ -169,7 +170,7 @@ def test_m_order_all():
 
 def test_m_q():
     m = M().add('key', 'one')
-    assert m.q() == ''
+    assert m.q() == ''  # noqa: compare-to-empty-string
 
 def test_m_read():
     f = StringIO('[key=value; isbn=1234567890]')
@@ -177,7 +178,7 @@ def test_m_read():
     assert str(m) == '[key=value; isbn=9781234567897]'
 
 def test_m_rename(monkeypatch):
-    p = Path('/tmp/[isbn=1234567890].jpeg')
+    p = Path('/blah/[isbn=1234567890].jpeg')
     q = Path('/home/sfc/Title [isbn=9781234567897].jpg')
     m = M().file(p)
     assert m.original_path == p
@@ -195,22 +196,22 @@ def test_m_rename(monkeypatch):
     mock_rename, result = mk_mock_rename()
     monkeypatch.setattr(Path, 'rename', mock_rename)
 
-    m.dir('/home/sfc').suffix('jpg').add('title', 'Title').rename()
+    m.with_dir('/home/sfc').with_suffix('jpg').add('title', 'Title').rename()
     assert m.original_path == q
     assert result['src'] == p
     assert result['dst'] == q
 
 def test_m_rename_exists(monkeypatch):
     m = M().file('/etc/passwd')
-    monkeypatch.setattr(Path, 'exists', lambda p: True)
-    monkeypatch.setattr(Path, 'samefile', lambda p, q: False)
+    monkeypatch.setattr(Path, 'exists', lambda _: True)
+    monkeypatch.setattr(Path, 'samefile', lambda _1, _2: False)
     with pytest.raises(FileExistsError):
         m.rename()
 
 def test_m_rename_samefile(monkeypatch):
     m = M().file('/etc/passwd')
-    monkeypatch.setattr(Path, 'exists', lambda p: True)
-    monkeypatch.setattr(Path, 'samefile', lambda p, q: True)
+    monkeypatch.setattr(Path, 'exists', lambda _: True)
+    monkeypatch.setattr(Path, 'samefile', lambda _1, _2: True)
     m.rename()
 
 def test_m_remove_one():
@@ -224,7 +225,7 @@ def test_m_remove_all():
 def test_m_set():
     m = M().add('key', 'one').add('key', 'two')
     assert m.encode() == '[key=one; key=two]'
-    m.set('key', 'value')
+    m.reset('key', 'value')
     assert m.encode() == '[key=value]'
 
 def test_m_sort_all():
@@ -242,14 +243,14 @@ def test_m_str():
     assert str(m) == 'isbn: 9781234567897'
 
 def test_m_suffix():
-    m = M().file('/tmp/f.pdf').suffix('jpg')
-    assert m.original_path == Path('/tmp/f.pdf')
-    assert m.modified_path == Path('/tmp/f.jpg')
+    m = M().file('/blah/f.pdf').with_suffix('jpg')
+    assert m.original_path == Path('/blah/f.pdf')
+    assert m.modified_path == Path('/blah/f.jpg')
 
 def test_m_suffix_dot():
-    m = M().file('/tmp/f.pdf').suffix('.jpg')
-    assert m.original_path == Path('/tmp/f.pdf')
-    assert m.modified_path == Path('/tmp/f.jpg')
+    m = M().file('/blah/f.pdf').with_suffix('.jpg')
+    assert m.original_path == Path('/blah/f.pdf')
+    assert m.modified_path == Path('/blah/f.jpg')
 
 def test_m_uri():
     m = M().decode('[a=1; doi=10.1234,56-78; v=foo/bar]')
@@ -266,18 +267,18 @@ def test_m_write():
     assert f.getvalue() == '[key=one]'
 
 def test_m_to_file():
-    p = '/tmp/[isbn=1234567890].pdf'
+    p = '/blah/[isbn=1234567890].pdf'
     m = M().file(p).add('title', 'Title')
     assert m.original_path == Path(p)
     f = File(m)
-    assert str(f) == '/tmp/Title [isbn=9781234567897].pdf'
+    assert str(f) == '/blah/Title [isbn=9781234567897].pdf'
 
 def test_m_to_url():
-    p = '/tmp/[isbn=1234567890].pdf'
+    p = '/blah/[isbn=1234567890].pdf'
     m = M().file(p).add('title', 'Title')
     assert m.original_path == Path(p)
     f = URL(m)
-    assert str(f) == 'file:///tmp/Title%20%5Bisbn=9781234567897%5D.pdf'
+    assert str(f) == 'file:///blah/Title%20%5Bisbn=9781234567897%5D.pdf'
 
 def test_m_to_other():
     with pytest.raises(TypeError):
@@ -288,7 +289,7 @@ def test_evaluate():
     assert r == '[isbn=9781234567897]'
 
 def test_evaluate_g():
-    r = M.evaluate("str(add('isbn', '1234567890'))", {'add': lambda x, y: 1})
+    r = M.evaluate("str(add('isbn', '1234567890'))", {'add': lambda _1, _2: 1})
     assert r == '1'
 
 def test_execute():
@@ -296,6 +297,6 @@ def test_execute():
     assert g['xxx'] == '[isbn=9781234567897]'
 
 def test_execute_g():
-    g = {'add': lambda x, y: 2}
+    g = {'add': lambda _1, _2: 2}
     M.execute("xxx = add('isbn', '1234567890')", g)
     assert g['xxx'] == 2

@@ -1,11 +1,11 @@
 # SPDX-License-Identifier: MIT
-"""Test encoding and decoding VljuMap"""
+"""Test encoding and decoding VljuMap."""
 
 import pytest
 
 from vlju import Vlju
-from vljumap import VljuMap, enc
 from vlju.types.doi import DOI
+from vljumap import VljuMap, enc
 
 class TstEncVlju(Vlju):  # pylint: disable=W0223
 
@@ -45,7 +45,7 @@ CASES = {
         'csv': ('"n","1"\n'
                 '"edition","2"\n'
                 '"date","2007"\n'
-                '"isbn","0123456789"\n')
+                '"isbn","0123456789"\n'),
     },
     'B': {
         'MAP': VljuMap().add_pairs([('a', 'Author, A')], TstEncVlju.factory),
@@ -164,7 +164,7 @@ CASES = {
                 '"special",""\n'
                 '"n","3"\n'
                 '"n","5"\n'
-                '"t","12:34:56"\n')
+                '"t","12:34:56"\n'),
     },
     'E': {
         'MAP':
@@ -178,14 +178,14 @@ CASES = {
         'v2': ('Mr. Book {a=Paul Penman;a=Writer, W;lccn=89-456}'),
         'v1': ('Paul Penman; Writer, W: Mr. Book [lccn=89-456]'),
         'v0': ('Paul Penman; Writer, W: Mr. Book lccn=89-456'),
-    }
+    },
 }
 
 CASES_MVE_ENCODE = [(CASES[c]['MAP'], v, CASES[c][v])
-                    for c in CASES.keys()
-                    for v in set(CASES[c].keys()) - set(('MAP', ))]
+                    for c in CASES
+                    for v in set(CASES[c].keys()) - {'MAP' }]
 
-@pytest.mark.parametrize("m,v,e", CASES_MVE_ENCODE)
+@pytest.mark.parametrize(('m', 'v', 'e'), CASES_MVE_ENCODE)
 def test_encode(m, v, e):
     if v in enc.encoder:
         assert enc.encoder[v].encode(m) == e
@@ -193,7 +193,7 @@ def test_encode(m, v, e):
 CASES_MVE_DECODE = filter(lambda t: t[1] not in ('sfc', 'sh', 'v0', 'value'),
                           CASES_MVE_ENCODE)
 
-@pytest.mark.parametrize("m,v,e", CASES_MVE_DECODE)
+@pytest.mark.parametrize(('m', 'v', 'e'), CASES_MVE_DECODE)
 def test_decode(m, v, e):
     if v in enc.encoder:
         assert enc.encoder[v].decode(VljuMap(), e, TstEncVlju.factory) == m

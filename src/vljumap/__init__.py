@@ -1,12 +1,12 @@
 # SPDX-License-Identifier: MIT
-"""VljuMap"""
+"""VljuMap."""
 
 from collections.abc import Iterable
 from typing import Self
 
+from util.multimap import MultiMap
 from vlju import Vlju
 from vljumap.factory import VljuFactory, default_factory
-from util.multimap import MultiMap
 
 class VljuMap(MultiMap[str, Vlju]):
     """MultiMap of Vlju."""

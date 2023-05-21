@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""DOI - Document Object Identifier"""
+"""DOI - Document Object Identifier."""
 
 import re
 import urllib.parse
@@ -10,13 +10,13 @@ from typing import Self
 from util import escape
 from util.typecheck import needtype
 from vlju.types.info import Info
-from vlju.types.uri import Authority, URI
+from vlju.types.uri import URI, Authority
 from vlju.types.url import URL
 
 class Prefix(list[int]):
     """Represents a DOI (or Handle) prefix."""
 
-    def __init__(self, p: Self | Sequence | str):
+    def __init__(self, p: Self | Sequence[int] | str):
         if isinstance(p, str):
             p = list(map(int, p.split('.')))
         super().__init__(p)
@@ -33,7 +33,8 @@ class Prefix(list[int]):
         return self
 
 class DOI(Info):
-    """Represents a DOI (Document Object Identifier) or Handle.
+    """
+    Represents a DOI (Document Object Identifier) or Handle.
 
     short:  sdoi
     long:   doi | uri
@@ -41,6 +42,7 @@ class DOI(Info):
         sdoi    → `_prefix` ‘,’ `_suffix`
         doi     → ‘doi:’ `_prefix` ‘/’ `_suffix`ᵖ
     """
+
     _i = {'doi': Authority('doi'), 'hdl': Authority('hdl')}
     _u = {'doi': Authority('doi.org'), 'hdl': Authority('hdl.handle.net')}
 
@@ -63,10 +65,11 @@ class DOI(Info):
         else:
             m = self._matcher.fullmatch(s)
             if not m:
-                raise ValueError(s)
+                message = f'Not a DOI: {s}'
+                raise ValueError(message)
             scheme, p, suffix = m.group('scheme', 'prefix', 'suffix')
             prefix = Prefix(p)
-            if scheme.startswith('http') or scheme.startswith('info'):
+            if scheme.startswith(('http', 'info')):
                 suffix = urllib.parse.unquote(suffix)
         # Note that DOI does not use Info path or authority.
         super().__init__('')
@@ -88,7 +91,7 @@ class DOI(Info):
             return f'doi:{self._prefix}/{escape.path.encode(self._suffix)}'
         return super().lv()
 
-    def cast_params(self, t) -> tuple[str, dict]:
+    def cast_params(self, t: object) -> tuple[str, dict]:
         if t is URI:
             return (self.spath(), {
                 'scheme': 'info',
@@ -102,7 +105,7 @@ class DOI(Info):
                 'scheme': 'https',
                 'authority': self._u[self._kind],
                 'query': self.query(),
-                'fragment': self.fragment()
+                'fragment': self.fragment(),
             })
         raise self.cast_param_error(t)
 
@@ -110,8 +113,8 @@ class DOI(Info):
 
     def __eq__(self, other):
         try:
-            return (self._prefix == other._prefix
-                    and self._suffix == other._suffix)
+            return (self._prefix == other._prefix  # noqa: SLF001
+                    and self._suffix == other._suffix)  # noqa: SLF001
         except AttributeError:
             return False
 
@@ -133,4 +136,4 @@ class DOI(Info):
         return self.doi()
 
     def __repr__(self):
-        return f'DOI(prefix={repr(self._prefix)},suffix={repr(self._suffix)})'
+        return f'DOI(prefix={self._prefix!r},suffix={self._suffix!r})'

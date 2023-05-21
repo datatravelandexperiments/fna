@@ -1,5 +1,7 @@
 # SPDX-License-Identifier: MIT
-"""Test some site Vljus"""
+"""Test some site Vljus."""
+
+# ruff: noqa: F821
 
 import pathlib
 
@@ -12,7 +14,7 @@ from vlju.types.url import URL
 
 config = read_toml_config(pathlib.Path('config/config.toml'))
 assert config
-for k, v in config['site'].items():
+for _, v in config['site'].items():
     globals()[v['name']] = site_class(**v)
 
 CASES = [
@@ -94,7 +96,12 @@ def test_url(cls, inp, scheme, host, path):
     assert str(url) == x
 
 @pytest.mark.parametrize(*im2p(CASES, ('cls', 'inp', 'scheme', 'host', 'path')))
-def test_site_bad_cast(cls, inp, scheme, host, path):
+def test_site_bad_cast(
+        cls,
+        inp,
+        scheme,  # noqa: unused-function-argument
+        host,  # noqa: unused-function-argument
+        path):  # noqa: unused-function-argument
     y = cls(inp)
     with pytest.raises(TypeError):
         _ = y.cast_params(int)

@@ -6,13 +6,15 @@ import io
 import os
 import sys
 
-from typing import cast, IO
+from pathlib import Path
+from typing import IO, cast
 
 # Paths and open files are accepted.
 PathLike = io.IOBase | IO | os.PathLike | str
 
 class IOState:
-    def __init__(self, file: IO, opened: bool):
+
+    def __init__(self, file: IO, *, opened: bool):
         self.file = file
         self.opened = opened
 
@@ -21,7 +23,8 @@ def opener(file: PathLike | None,
            default: IO,
            encoding: str = 'utf-8',
            **kwargs) -> IOState:
-    """Open a file.
+    """
+    Open a file.
 
     The file can be an IOBase, '-' for the default, or a path.
 
@@ -29,10 +32,11 @@ def opener(file: PathLike | None,
     was opened by this function.
     """
     if file is None or file == '-':
-        return IOState(default, False)
-    if isinstance(file, (io.IOBase, IO)):
-        return IOState(cast(IO, file), False)
-    return IOState(open(file, mode, encoding=encoding, **kwargs), True)
+        return IOState(default, opened=False)
+    if isinstance(file, io.IOBase | IO):
+        return IOState(cast(IO, file), opened=False)
+    return IOState(
+        Path(file).open(mode, encoding=encoding, **kwargs), opened=True)
 
 def open_context(file: PathLike | None,
                  mode: str,
@@ -45,13 +49,13 @@ def open_context(file: PathLike | None,
     return contextlib.nullcontext(s.file)
 
 def open_output(file: PathLike | None,
-                default=sys.stdout,
-                encoding='utf-8',
+                default: IO = sys.stdout,
+                encoding: str = 'utf-8',
                 **kwargs) -> contextlib.AbstractContextManager:
     return open_context(file, 'w', default, encoding, **kwargs)
 
 def open_input(file: PathLike | None,
-               default=sys.stdin,
-               encoding='utf-8',
+               default: IO = sys.stdin,
+               encoding: str = 'utf-8',
                **kwargs) -> contextlib.AbstractContextManager:
     return open_context(file, 'r', default, encoding, **kwargs)

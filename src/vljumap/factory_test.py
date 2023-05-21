@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Test VljuFactory"""
+"""Test VljuFactory."""
 
 import pytest
 
@@ -21,7 +21,7 @@ CASES = [
 ]
 # yapf: enable
 
-@pytest.fixture(name="factory")
+@pytest.fixture(name='factory')
 def fixture_factory():
     return MappedFactory({key: cls for key, cls, _ in CASES}, Vlju)
 
@@ -36,8 +36,8 @@ def test_mapped_factory_unknown_class(factory):
     _, v = factory('other', 'thing')
     assert type(v) == Vlju  # pylint: disable=unidiomatic-typecheck
 
-def test_mapped_factory_set(factory):
-    factory.set('isbn', EAN13)
+def test_mapped_factory_setitem(factory):
+    factory.setitem('isbn', EAN13)
     _, v = factory('isbn', '9780804429573')
     assert type(v) == EAN13  # pylint: disable=unidiomatic-typecheck
 

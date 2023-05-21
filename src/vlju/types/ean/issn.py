@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""ISSN - International Standard Serial Number"""
-
-from typing import Optional
+"""ISSN - International Standard Serial Number."""
 
 import util.checksum
 
@@ -18,8 +16,8 @@ class ISSN(EAN13):
         super().__init__(v, 'issn')
 
     def lv(self) -> str:
-        v = self.split8()
-        assert v is not None
+        if (v := self.split8()) is None:  # pragma: no branch
+            raise ValueError(v)  # pragma: no cover
         return v
 
     def path(self) -> str:
@@ -29,7 +27,7 @@ class ISSN(EAN13):
         """Return an unsplit ISSN-13."""
         return self._value
 
-    def issn8(self) -> Optional[str]:
+    def issn8(self) -> str | None:
         """Return an unsplit ISSN-8, or None if not representable."""
         if self._value and self._value.startswith('977'):
             s = self._value[3 : 10]
@@ -40,7 +38,7 @@ class ISSN(EAN13):
         v = self._value
         return f'{v[0:3]}-{v[3:7]}-{v[7:10]}-{v[10:12]}-{v[12]}'
 
-    def split8(self) -> Optional[str]:
+    def split8(self) -> str | None:
         if (s := self.issn8()) is None:
             return None
         return f'{s[0:4]}-{s[4:8]}'

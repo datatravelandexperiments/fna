@@ -3,7 +3,7 @@
 
 import textwrap
 
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Iterator
 
 from util.docsplit import docsplit
 from util.error import Error
@@ -14,7 +14,7 @@ class Runner:
     commands: dict[str, Callable] = {}
 
     def __init__(self, m: M | None = None):
-        self.tokens: Iterable[str] | None = None
+        self.tokens: Iterator[str] | None = None
         self.m = M() if m is None else m
         self.report = False
         self.help: dict | None = None
@@ -27,15 +27,15 @@ class Runner:
         self.commands |= {
             # Factories
             k: type(self).set_factory
-            for k in self.m.factory.keys()
+            for k in self.m.factory
         } | {
             # Encoders/decoders.
             k: type(self).set_coder
-            for k in self.m.encoder.keys()
+            for k in self.m.encoder
         } | {
             # Modes.
             k: type(self).set_mode
-            for k in self.m.mode.keys()
+            for k in self.m.mode
         }
 
     def token(self) -> str | None:
@@ -53,7 +53,8 @@ class Runner:
         return t
 
     def command_add(self, cmd: str):
-        """Add an attribute.
+        """
+        Add an attribute.
 
         Constructs the value using the current active factory.
 
@@ -65,7 +66,8 @@ class Runner:
         self.report = True
 
     def command_decode(self, cmd: str):
-        """Decode a string.
+        """
+        Decode a string.
 
         Decodes using the current active decoder.
 
@@ -75,14 +77,16 @@ class Runner:
         self.report = True
 
     def command_decoder(self, cmd: str):
-        """Set the current active decoder.
+        """
+        Set the current active decoder.
 
         Synopsis: decoder ‹decoder›
         """
         self.set_registry(self.m.decoder, cmd)
 
     def command_delete(self, cmd: str):
-        """Delete all attributes for one or more ‹key›s.
+        """
+        Delete all attributes for one or more ‹key›s.
 
         It is not an error for keys not to be present.
         The complement of `delete` is `extract`.
@@ -94,11 +98,12 @@ class Runner:
         self.report = True
 
     def command_dir(self, cmd: str):
-        self.m.dir(self.need(f'{cmd}: expected directory'))
+        self.m.with_dir(self.need(f'{cmd}: expected directory'))
         self.report = True
 
-    def command_encode(self, cmd: str):
-        """Encode and prints the current attributes.
+    def command_encode(self, _: str):
+        """
+        Encode and prints the current attributes.
 
         Encodes using the current active encoder.
 
@@ -108,14 +113,16 @@ class Runner:
         self.report = False
 
     def command_encoder(self, cmd: str):
-        """Set the current active encoder.
+        """
+        Set the current active encoder.
 
         Synopsis: encoder ‹encoder›
         """
         self.set_registry(self.m.encoder, cmd)
 
     def command_extract(self, cmd: str):
-        """Extract attributes for one or more keys.
+        """
+        Extract attributes for one or more keys.
 
         It is not an error for keys not to be present.
         The complement of `extract` is `delete`.
@@ -126,14 +133,16 @@ class Runner:
         self.report = True
 
     def command_factory(self, cmd: str):
-        """Set the current active factory.
+        """
+        Set the current active factory.
 
         Synopsis: factory ‹factory›
         """
         self.set_registry(self.m.factory, cmd)
 
     def command_file(self, cmd: str):
-        """Decode a file name.
+        """
+        Decode a file name.
 
         Decodes using the current active decoder.
 
@@ -142,8 +151,9 @@ class Runner:
         self.m.file(self.need(f'{cmd}: expected filename'))
         self.report = True
 
-    def command_filename(self, cmd: str):
-        """Encode and print the current attributes as a file name.
+    def command_filename(self, _: str):
+        """
+        Encode and print the current attributes as a file name.
 
         Encodes using the current active encoder.
 
@@ -152,8 +162,9 @@ class Runner:
         print(self.m.filename())
         self.report = False
 
-    def command_help(self, cmd: str):
-        """Show information about a subcommand, or list subcommands.
+    def command_help(self, _: str):
+        """
+        Show information about a subcommand, or list subcommands.
 
         Synopsis: help [‹subcommand›]*
         """
@@ -183,14 +194,16 @@ class Runner:
                 print(f'  {name:8} - {self.help[name][0][0]}')
 
     def command_mode(self, cmd: str):
-        """Set the current active mode.
+        """
+        Set the current active mode.
 
         Synopsis: mode ‹mode›
         """
         self.set_registry(self.m.mode, cmd)
 
     def command_order(self, cmd: str):
-        """Arranges keys.
+        """
+        Arranges keys.
 
         With `--all`, arranges the attribute keys in alphabetical order.
 
@@ -203,11 +216,12 @@ class Runner:
         self.m = self.m.sortkeys(None if t == '--all' else t.split(','))
         self.report = True
 
-    def command_quiet(self, cmd: str):
+    def command_quiet(self, _: str):
         self.report = False
 
     def command_remove(self, cmd: str):
-        """Remove a specific attribute.
+        """
+        Remove a specific attribute.
 
         Constructs the value using the current active factory.
 
@@ -218,12 +232,13 @@ class Runner:
         self.m.remove(key, val)
         self.report = True
 
-    def command_rename(self, cmd: str):
+    def command_rename(self, _: str):
         self.m.rename()
         self.report = False
 
     def command_set(self, cmd: str):
-        """Set an attribute.
+        """
+        Set an attribute.
 
         Replaces any existing attributes for the same ‹key›.
         Constructs the value using the current active factory.
@@ -232,11 +247,12 @@ class Runner:
         """
         key = self.need(f'{cmd}: expected key')
         val = self.need(f'{cmd}: expected value')
-        self.m.set(key, val)
+        self.m.reset(key, val)
         self.report = True
 
     def command_sort(self, cmd: str):
-        """Sorts values for a given key or all keys.
+        """
+        Sorts values for a given key or all keys.
 
         Synopsis: sort (--all | ‹key›[,‹key›]*)
         """
@@ -248,11 +264,12 @@ class Runner:
         self.report = True
 
     def command_suffix(self, cmd: str):
-        self.m.suffix(self.need(f'{cmd}: expected suffix'))
+        self.m.with_suffix(self.need(f'{cmd}: expected suffix'))
         self.report = True
 
-    def command_uri(self, cmd: str):
-        """Print attribute URI(s).
+    def command_uri(self, _: str):
+        """
+        Print attribute URI(s).
 
         If multiple attributes have URIs, they will be printed on separate
         lines.
@@ -262,8 +279,9 @@ class Runner:
         print(self.m.uri())
         self.report = False
 
-    def command_url(self, cmd: str):
-        """Print attribute URL(s).
+    def command_url(self, _: str):
+        """
+        Print attribute URL(s).
 
         If multiple attributes have URLs, they will be printed on separate
         lines.
@@ -276,9 +294,9 @@ class Runner:
         self.report = False
 
     def set_coder(self, cmd: str):
-        if cmd in self.m.decoder.keys():
+        if cmd in self.m.decoder:
             self.m.decoder.set_default(cmd)
-        if cmd in self.m.encoder.keys():  # pragma: no branch
+        if cmd in self.m.encoder:  # pragma: no branch
             self.m.encoder.set_default(cmd)
 
     def set_factory(self, cmd: str):
@@ -302,10 +320,11 @@ class Runner:
         while (cmd := self.token()) is not None:
             c = self.commands.get(cmd)
             if not c:
-                raise Error(f'{cmd}: Unknown command')
+                msg = f'{cmd}: Unknown command'
+                raise Error(msg)
             c(self, cmd)
         if self.report:
             print(self.m)
 
     def runs(self, s: str):
-        return self.run(s.split())
+        self.run(s.split())

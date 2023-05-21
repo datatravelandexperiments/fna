@@ -1,5 +1,8 @@
 # SPDX-License-Identifier: MIT
-"""Test URI"""
+"""Test URI."""
+
+# Testing password parsing:
+# ruff: noqa: S105, S106
 
 import copy
 
@@ -7,7 +10,7 @@ import pytest
 
 from util.pytestutil import im2p, it2p
 from vlju import Vlju
-from vlju.types.uri import Authority, URI
+from vlju.types.uri import URI, Authority
 from vlju.types.url import URL
 
 # yapf: disable
@@ -66,22 +69,46 @@ def test_authority_slashes():
 
 def test_authority_type_error():
     with pytest.raises(TypeError):
-        _ = Authority(1)  # type: ignore
+        _ = Authority(1)  # type: ignore[arg-type]
 
-@pytest.mark.parametrize("cls", [URI, URL])
+def test_authority_username_match():
+    a = Authority('me@example.com', username='me')
+    assert a.username == 'me'
+
+def test_authority_username_error():
+    with pytest.raises(ValueError, match='username'):
+        _ = Authority('me@example.com', username='not me')
+
+def test_authority_password_match():
+    a = Authority('me:hunter2@example.com', password='hunter2')
+    assert a.password == 'hunter2'
+
+def test_authority_password_error():
+    with pytest.raises(ValueError, match='password'):
+        _ = Authority('me:hunter2@example.com', password='12345')
+
+def test_authority_port_match():
+    a = Authority('example.com:443', port=443)
+    assert a.port == 443
+
+def test_authority_port_error():
+    with pytest.raises(ValueError, match='port'):
+        _ = Authority('example.com:443', port=80)
+
+@pytest.mark.parametrize('cls', [URI, URL])
 def test_uri_constructor_minimal(cls):
-    """Test vlju.uri.URI"""
+    """Test vlju.uri.URI."""
     u1 = cls('v')
     assert str(u1) == 'v'
 
-@pytest.mark.parametrize("cls", [URI, URL])
+@pytest.mark.parametrize('cls', [URI, URL])
 def test_uri_constructor_authority(cls):
     a = Authority('localhost')
     u2 = cls('v', scheme='s', authority=a, query='q', fragment='f')
     assert str(u2) == 's://localhost/v?q#f'
     assert u2.path() == 'v'
 
-@pytest.mark.parametrize("cls", [URI, URL])
+@pytest.mark.parametrize('cls', [URI, URL])
 def test_uri_constructor_full(cls):
     u3 = cls(
         'v/?/a/#/l/(u)/e',
@@ -99,7 +126,7 @@ def test_uri_constructor_full(cls):
     assert u3.fragment() == 'f#f'
     assert u3.sfragment() == '#f%23f'
 
-URI_CASES = [
+URI_CASES: list[dict[str, str | None]] = [
     {
         'inp': 'https://example.com/with/a/path?n=1#id',
         'uri': 'https://example.com/with/a/path?n=1#id',
@@ -129,7 +156,7 @@ URI_CASES = [
     },
 ]
 
-@pytest.mark.parametrize("cls", [URI, URL])
+@pytest.mark.parametrize('cls', [URI, URL])
 @pytest.mark.parametrize(*im2p(URI_CASES))
 def test_uri_constructor(cls, inp, uri, path, scheme, host, query, fragment):
     u = cls(inp)
@@ -140,7 +167,7 @@ def test_uri_constructor(cls, inp, uri, path, scheme, host, query, fragment):
     assert u.query() == query
     assert u.fragment() == fragment
 
-@pytest.mark.parametrize("cls", [URI, URL])
+@pytest.mark.parametrize('cls', [URI, URL])
 @pytest.mark.parametrize(*im2p(URI_CASES))
 def test_uri_get(cls, inp, uri, path, scheme, host, query, fragment):
     u = cls(inp)
@@ -152,7 +179,7 @@ def test_uri_get(cls, inp, uri, path, scheme, host, query, fragment):
     assert u['query'] == query
     assert u['fragment'] == fragment
 
-@pytest.mark.parametrize("cls", [URI, URL])
+@pytest.mark.parametrize('cls', [URI, URL])
 @pytest.mark.parametrize(*im2p(URI_CASES, ['inp']))
 def test_uri_eq(cls, inp):
     u1 = cls(inp)
@@ -164,7 +191,7 @@ def test_uri_eq(cls, inp):
     assert u1 != u3
     assert u1 != v
 
-@pytest.mark.parametrize("cls", [URI, URL])
+@pytest.mark.parametrize('cls', [URI, URL])
 @pytest.mark.parametrize(*im2p(URI_CASES, ['inp']))
 def test_uri_copy(cls, inp):
     u1 = cls(inp)

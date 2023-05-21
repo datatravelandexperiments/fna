@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Test ISBN"""
+"""Test ISBN."""
 
 import pytest
 
@@ -15,7 +15,7 @@ CASES = [
 
 NOT_ISBN_CASES = ['4545784063439', 'Not an ISBN']
 
-@pytest.mark.parametrize("s10,s13,split10,split13", CASES)
+@pytest.mark.parametrize(('s10', 's13', 'split10', 'split13'), CASES)
 def test_isbn_constructor(s10, s13, split10, split13):
     ISBN.split_all = False
     i10 = ISBN(s10)
@@ -30,12 +30,12 @@ def test_isbn_constructor(s10, s13, split10, split13):
     assert str(j10) == s13
     assert str(j13) == s13
 
-@pytest.mark.parametrize("i", NOT_ISBN_CASES)
+@pytest.mark.parametrize('i', NOT_ISBN_CASES)
 def test_isbn_constructor_not_isbn(i):
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=i):
         _ = ISBN(i)
 
-@pytest.mark.parametrize("s10", (c[0] for c in CASES))
+@pytest.mark.parametrize('s10', (c[0] for c in CASES))
 def test_isbn_isbn10(s10):
     ISBN.split_all = False
     i10 = ISBN(s10)
@@ -45,20 +45,20 @@ def test_isbn_isbn10_not_isbn10():
     # Not representable as ISBN-10:
     assert ISBN('9791692006289').isbn10() is None
 
-@pytest.mark.parametrize("s10,s13", ((c[0], c[1]) for c in CASES))
+@pytest.mark.parametrize(('s10', 's13'), ((c[0], c[1]) for c in CASES))
 def test_isbn_isbn13(s10, s13):
     ISBN.split_all = False
     i10 = ISBN(s10)
     assert i10.isbn13() == s13
 
-@pytest.mark.parametrize("s10,s13", ((c[0], c[1]) for c in CASES))
+@pytest.mark.parametrize(('s10', 's13'), ((c[0], c[1]) for c in CASES))
 def test_isbn_to_uri(s10, s13):
     ISBN.split_all = False
     i10 = ISBN(s10)
     uri = URI(i10)
     assert str(uri) == f'urn:isbn:{s13}'
 
-@pytest.mark.parametrize("s10,split10,split13",
+@pytest.mark.parametrize(('s10', 'split10', 'split13'),
                          ((c[0], c[2], c[3]) for c in CASES))
 def test_isbn_split(s10, split10, split13):
     ISBN.split_all = True
@@ -74,6 +74,6 @@ def test_isbn_split_unknown():
     ISBN.split_all = False
     i = ISBN(CASES[0][0])
     # Cheat for testing; set the value to an unsplittable EAN.
-    i._value = NOT_ISBN_CASES[0]    # pylint:disable=protected-access
+    i._value = NOT_ISBN_CASES[0]    # noqa: SLF001
     with pytest.warns(UserWarning, match='not found'):
         assert i.split13() == NOT_ISBN_CASES[0]

@@ -1,16 +1,16 @@
-# SPDX-Licnse-Identifier: MIT
-"""Test DOI"""
+# SPDX-License-Identifier: MIT
+"""Test DOI."""
 
 import copy
 
 import pytest
 
 from vlju.types.doi import DOI, Prefix
-from vlju.types.uri import Authority, URI
+from vlju.types.uri import URI, Authority
 from vlju.types.url import URL
 
 def test_doi_prefix():
-    """Test vlju.doi.Prefix"""
+    """Test vlju.doi.Prefix."""
     p = Prefix('10.1234')
     q = Prefix([10, 11, 23])
     r = Prefix(p)
@@ -27,9 +27,9 @@ def test_doi_prefix():
     assert not s.is_doi()
     assert q == [10, 11, 23]
 
-@pytest.mark.parametrize("prefix,suffix", [('10.1234', 'Lorem'),
-                                           (Prefix('10.4567'), 'ipsum'),
-                                           ([11, 12, 13], 'dolor/sit/a(me)t')])
+@pytest.mark.parametrize(('prefix', 'suffix'),
+                         [('10.1234', 'Lorem'), (Prefix('10.4567'), 'ipsum'),
+                          ([11, 12, 13], 'dolor/sit/a(me)t')])
 def test_doi_init_parts(prefix, suffix):
     """Test directly constructed DOI."""
     d = DOI(prefix=prefix, suffix=suffix)
@@ -52,9 +52,9 @@ def test_doi_init_parts(prefix, suffix):
     assert d.suffix() == f'{s}'
     assert d.hdl() == f'info:hdl/{q}/{s}'
     assert d.doi() == f'{doi}{q}/{s}'
-    assert repr(d) == f'DOI(prefix={repr(p)},suffix={repr(s)})'
+    assert repr(d) == f'DOI(prefix={p!r},suffix={s!r})'
 
-@pytest.mark.parametrize("s,x", [
+@pytest.mark.parametrize(('s', 'x'), [
     ('10.1234/56.78', 'info:doi/10.1234/56.78'),
     ('10.1234,56.78', 'info:doi/10.1234/56.78'),
     ('11.12.13/dolor/sit/a(me)t', 'info:hdl/11.12.13/dolor/sit/a(me)t'),
@@ -79,7 +79,7 @@ def test_doi_init(s, x):
     assert str(URI(DOI(s))) == x
 
 def test_doi_init_empty():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='DOI'):
         _ = DOI('')
 
 def test_doi_copy():

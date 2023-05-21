@@ -1,12 +1,13 @@
 # SPDX-License-Identifier: MIT
 
-from collections.abc import Container, Mapping
+from collections.abc import KeysView, Mapping
 from typing import Generic, Self, TypeVar
 
 T = TypeVar('T')
 
 class Registry(Generic[T]):
-    """Used to enable argument polymorphism.
+    """
+    Used to enable argument polymorphism.
 
     Several operations have arguments that can take any of three forms:
     - a value of a type T;
@@ -25,6 +26,9 @@ class Registry(Generic[T]):
         r.default = self.default
         return r
 
+    def __iter__(self):
+        return iter(self.dict)
+
     def update(self, m: Mapping[str, T]) -> Self:
         self.dict.update(m)
         return self
@@ -36,16 +40,18 @@ class Registry(Generic[T]):
     def get(self, t: T | str | None = None) -> T:
         if t is None:
             if self.default is None:
-                raise self._keyerror('no default value')
+                msg = 'no default value'
+                raise self._keyerror(msg)
             return self.default
         if isinstance(t, str):
             try:
                 return self.dict[t]
             except KeyError as e:
-                raise self._keyerror(f'‘{t}’ is not known') from e
+                msg = f'‘{t}’ is not known'
+                raise self._keyerror(msg) from e
         return t
 
-    def keys(self) -> Container:
+    def keys(self) -> KeysView[str]:
         return self.dict.keys()
 
     def _keyerror(self, message: str) -> KeyError:

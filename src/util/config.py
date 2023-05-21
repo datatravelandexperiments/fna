@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT
 """Configuration-file related utilities."""
 
+import contextlib
 import os
 import tomllib
 
@@ -12,7 +13,8 @@ class Dirs(list[Path]):
     """Maintain a list of directories."""
 
     def add_env_dir(self, evar: str, default: Path | None = None) -> Self:
-        """Add an environment-variable-based or default directory.
+        """
+        Add an environment-variable-based or default directory.
 
         Based on XDG conventions. If the environment variable named `evar`
         exists and contains a directory path, add it; otherwise, if the
@@ -27,7 +29,8 @@ class Dirs(list[Path]):
         return self
 
     def add_env_dirs(self, env: str, default: list[Path]) -> Self:
-        """Add a list of environment-variable-based or default directories.
+        """
+        Add a list of environment-variable-based or default directories.
 
         Based on XDG conventions. If the environment variable named `evar`
         exists, treat it as a `:`-separated path and add any existing absolute
@@ -58,10 +61,9 @@ def xdg_dirs(name: str,
              home: Path | None = None) -> Dirs:
     """Obtain a list of XDG directories of the given kind."""
     if home is None:
-        try:
+        with contextlib.suppress(RuntimeError):
             home = Path.home()
-        except RuntimeError:
-            pass
+
     default_path = None if home is None else home / default_dir
     d = Dirs()
     d.add_env_dir(f'XDG_{name}_HOME', default_path)
@@ -75,7 +77,7 @@ def xdg_config(filename: Path | str) -> Path | None:
     return xdg_config_dirs().find_first(filename)
 
 def read_toml_config(file: Path | str) -> dict | None:
-    with open(file, 'rb') as f:
+    with Path(file).open('rb') as f:
         try:
             return tomllib.load(f)
         except tomllib.TOMLDecodeError as e:
@@ -104,7 +106,7 @@ def read_cmd_configs(cmd: str, args: Iterable[Path | str]) -> dict:
         Path(f'{cmd}/config.toml'),
     ])
 
-def nested_update(dst: dict, src: dict):
+def nested_update(dst: dict, src: dict) -> dict:
     for k, v in src.items():
         if k in dst and isinstance(dst[k], dict) and isinstance(v, dict):
             nested_update(dst[k], v)

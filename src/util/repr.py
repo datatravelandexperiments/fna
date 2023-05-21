@@ -7,12 +7,13 @@ from typing import Any
 # pylint: disable=dangerous-default-value
 # pylint does not understand that Iterator and Mapping are immutable.
 def mkrepr(
-    obj,
+    obj: object,
     pos: Iterable[str],
     kws: Iterable[str] = [],
-    defaults: Mapping[str, Any] = {}
-):
-    """Helper to format a repr resembling a constructor.
+    defaults: Mapping[str, Any] = {},
+) -> str:
+    """
+    Format a repr resembling a constructor.
 
     pos - positional argument names
     kws - keyword argument names
@@ -26,11 +27,11 @@ def mkrepr(
             # Omitted, so subsequent parameters need a keyword.
             kw = True
         elif kw:
-            r.append(f'{attr.lstrip("_")}={repr(v)}')
+            r.append(f'{attr.lstrip("_")}={v!r}')
         else:
             r.append(repr(v))
     for attr in kws:
         v = getattr(obj, attr)
         if v is not None and v != defaults.get(attr):
-            r.append(f'{attr.lstrip("_")}={repr(v)}')
+            r.append(f'{attr.lstrip("_")}={v!r}')
     return f'{type(obj).__name__}({",".join(r)})'

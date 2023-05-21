@@ -62,8 +62,10 @@ $ fna file '/tmp/My Book.pdf' add isbn 1234567890 json encode
 
 ## Configuration
 
-`fna` tries to read `fna/config.toml` from XDG locations
-(e.g. `$HOME/.config/`).
+`fna` tries to read `vlju/config.toml` or  `fna/config.toml` from XDG locations
+(e.g. `$HOME/.config/`). The former is shared by all tools using the Vlju
+library, while the latter applies only to the `fna` command.
+
 This file can define keys and classes associated with web sites,
 mapping from a compact ID to a URL. (The other direction does not yet exist.)
 The distribution file `config/config.toml` contains some examples.
@@ -109,5 +111,6 @@ The command line tool `fna`.
 - Better documentation.
 - Logging options.
 - Better error handling. Too much still just raises exceptions.
+- Investigate constructing SiteBase values from URL strings.
 
 <!-- vim:set textwidth=79: -->

@@ -1,17 +1,16 @@
-#!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
 
 import argparse
 import pathlib
 import sys
 
-import util.io
 import util.config
+import util.io
 import vljum.m
 import vljum.runner
 import vljumap.enc
 
-def main(argv: list[str] | None = None):
+def main(argv: list[str] | None = None) -> int:
     if argv is None:
         argv = sys.argv
     cmd = pathlib.Path(argv[0]).stem
@@ -108,10 +107,10 @@ def main(argv: list[str] | None = None):
                         vljum.m.M.execute(f.read())
             case _:
                 print(f'{cmd}: Unknown mode: {args.mode}')
-        return 0
     except Exception as e:
         print(f'{cmd}: Unhandled exception: {type(e).__name__}{e.args}')
-        raise e
+        raise
+    return 0
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     sys.exit(main())

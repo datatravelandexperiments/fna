@@ -1,11 +1,11 @@
 # SPDX-License-Identifier: MIT
-"""Test checksums"""
+"""Test checksums."""
 
 import pytest
 
 import util.checksum
 
-@pytest.mark.parametrize("s", [
+@pytest.mark.parametrize('s', [
     '9780070342071',
     '9780127450407',
     '9780201896831',
@@ -18,7 +18,7 @@ def test_alt13(s):
     assert util.checksum.alt13_checksum(s[: 12]) == int(s[12])
     assert util.checksum.alt13(s[: 12]) == s[12]
 
-@pytest.mark.parametrize("s,x", [
+@pytest.mark.parametrize(('s', 'x'), [
     ('0378595', '5'),
     ('0317847', '1'),
     ('1050124', 'X'),

@@ -1,6 +1,6 @@
-# SPDX-Licnse-Identifier: MIT
+# SPDX-License-Identifier: MIT
 
-def istype(value, *args) -> bool:
+def istype(value, *args) -> bool:   # noqa: ANN001
     for i in args:
         if i is None:
             return value is None

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Test SiteBase and site_class()"""
+"""Test SiteBase and site_class()."""
 
 from vlju.types.site import SiteBase, site_class
 from vlju.types.uri import Authority
@@ -20,14 +20,14 @@ def test_site_base_normalize():
     assert s.lv() == 'https://example.com/VALUE'
 
 def test_site_class():
-    SiteC = site_class(
+    SiteC = site_class(  # noqa: non-lowercase-variable-in-function
         'SiteC', host='example.com', path='item/{x}')
     c0 = SiteC('000')
     c1 = SiteC('111')
     assert c0.lv() == 'https://example.com/item/000'
     assert c1.lv() == 'https://example.com/item/111'
 
-    SiteD = site_class(
+    SiteD = site_class(  # noqa: non-lowercase-variable-in-function
         name='SiteD',
         scheme='http',
         host='example.com',
@@ -36,7 +36,7 @@ def test_site_class():
     d0 = SiteD('alpha beta')
     assert d0.lv() == 'http://example.com/item?q=alpha+beta'
 
-    SiteE = site_class(
+    SiteE = site_class(  # noqa: non-lowercase-variable-in-function
         name='SiteE',
         scheme='https',
         host='example.com',

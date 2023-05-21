@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: MIT
-"""Test repr utilities"""
+"""Test repr utilities."""
 
 import pytest
 
-from util.repr import mkrepr
 from util.pytestutil import it2p
+from util.repr import mkrepr
 
 @pytest.fixture(name='test_mkrepr_object')
 def mkrepr_object():
@@ -16,7 +16,7 @@ def mkrepr_object():
     # In order to make the cases fit on a line, we test with single-letter
     # attribute names and take advantage of the fact that iterating over a
     # string yields single-character strings.
-    for c in "abcdef":
+    for c in 'abcdef':
         t[c] = c.upper()
     return t
 
@@ -24,14 +24,14 @@ def mkrepr_object():
 CASES_MKREPR = [
     ('pos',     'kws',  'defaults',             'expect'),
     # ---        ---     --------                ------
-    ("a",       "",     {},                     "T('A')"),
-    ("ab",      "",     {},                     "T('A','B')"),
-    ("a",       "c",    {},                     "T('A',c='C')"),
-    ("",        "c",    {},                     "T(c='C')"),
-    ("ab",      "cd",   {},                     "T('A','B',c='C',d='D')"),
-    ("ab",      "cd",   {'a': 'A'},             "T(b='B',c='C',d='D')"),
-    ("ab",      "cd",   {'c': 'C'},             "T('A','B',d='D')"),
-    ("ab",      "cd",   {'a': 'A', 'c': 'C'},   "T(b='B',d='D')"),
+    ('a',       '',     {},                     "T('A')"),
+    ('ab',      '',     {},                     "T('A','B')"),
+    ('a',       'c',    {},                     "T('A',c='C')"),
+    ('',        'c',    {},                     "T(c='C')"),
+    ('ab',      'cd',   {},                     "T('A','B',c='C',d='D')"),
+    ('ab',      'cd',   {'a': 'A'},             "T(b='B',c='C',d='D')"),
+    ('ab',      'cd',   {'c': 'C'},             "T('A','B',d='D')"),
+    ('ab',      'cd',   {'a': 'A', 'c': 'C'},   "T(b='B',d='D')"),
 ]
 # yapf: enable
 

@@ -1,13 +1,14 @@
 # SPDX-License-Identifier: MIT
-"""URN - Vlju representable as a URN"""
+"""URN - Vlju representable as a URN."""
 
 import util.escape
 import util.repr
 
-from vlju.types.uri import Authority, URI
+from vlju.types.uri import URI, Authority
 
 class URN(URI):
-    """Represents a URN.
+    """
+    Represents a URN.
 
     short:  uri
     long:   uri
@@ -35,14 +36,14 @@ class URN(URI):
 
     # Vlju overrides:
 
-    def __eq__(self, other):
-        try:
-            return (self._value == other._value
-                    and self._scheme == other._scheme
-                    and self._authority == other._authority
-                    and self._urnq == other._urnq and self._urnr == other._urnr)
-        except AttributeError:
-            return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, URN):
+            return (self._value == other._value  # noqa: SLF001
+                    and self._scheme == other._scheme  # noqa: SLF001
+                    and self._authority == other._authority  # noqa: SLF001
+                    and self._urnq == other._urnq  # noqa: SLF001
+                    and self._urnr == other._urnr)  # noqa: SLF001
+        return False
 
     def __repr__(self) -> str:
         return util.repr.mkrepr(self, ['_value'],

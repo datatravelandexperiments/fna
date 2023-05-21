@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Test URL"""
+"""Test URL."""
 
 from vlju.types.uri import URI
 from vlju.types.url import URL

@@ -1,14 +1,14 @@
 # SPDX-License-Identifier: MIT
-"""Test URN"""
+"""Test URN."""
 
 import copy
 
 from vlju import Vlju
-from vlju.types.uri import Authority, URI
+from vlju.types.uri import URI, Authority
 from vlju.types.urn import URN
 
 def test_urn():
-    """Test vlju.urn.URN"""
+    """Test vlju.urn.URN."""
     u1 = URN('v', 'k')
     assert repr(u1) == "URN('v',authority=Authority('k'))"
     assert str(u1) == 'urn:k:v'
@@ -22,7 +22,7 @@ def test_urn():
     assert u3.sauthority() == 'kind'
     assert u3.query() is None
     assert u3.fragment() is None
-    assert u3.sfragment() == ''
+    assert u3.sfragment() == ''  # noqa: compare-to-empty-string
 
     u4 = copy.copy(u3)
     assert u4 is not u3

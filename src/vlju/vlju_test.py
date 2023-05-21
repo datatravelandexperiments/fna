@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Test Vlju"""
+"""Test Vlju."""
 
 import copy
 
@@ -13,7 +13,7 @@ def test_vlju_constructor():
 
 def test_vlju_constructor_non_string():
     with pytest.raises(TypeError):
-        v = Vlju(1)
+        _ = Vlju(1)
 
 def test_vlju_copy():
     v = Vlju('one')
@@ -26,6 +26,7 @@ def test_vlju_eq():
     w = Vlju('one')
     assert w is not v
     assert w == v
+    assert w != 'one'
 
 def test_vlju_repr():
     v = Vlju('one')
