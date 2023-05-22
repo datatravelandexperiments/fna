@@ -100,6 +100,11 @@ class Runner:
         self.report = True
 
     def command_dir(self, cmd: str) -> None:
+        """
+        Set the directory associated with a file name.
+
+        Synopsis: dir ‹directory›
+        """
         self.m.with_dir(self.need(f'{cmd}: expected directory'))
         self.report = True
 
@@ -235,6 +240,15 @@ class Runner:
         self.report = True
 
     def command_rename(self, _: str) -> None:
+        """
+        Rename a file.
+
+        If attributes, directory, or suffix have changed since the
+        file name decoding, rename the original file according
+        to the current state.
+
+        Synopsis: rename
+        """
         self.m.rename()
         self.report = False
 
@@ -266,6 +280,11 @@ class Runner:
         self.report = True
 
     def command_suffix(self, cmd: str) -> None:
+        """
+        Set the suffix associated with a file name.
+
+        Synopsis: suffix ‹ext›
+        """
         self.m.with_suffix(self.need(f'{cmd}: expected suffix'))
         self.report = True
 

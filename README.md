@@ -1,5 +1,11 @@
 # fna
 
+- [Introduction](#introduction)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [Implementation](#implementation)
+
 ## Introduction
 
 ### The problem
@@ -25,6 +31,17 @@ For certain keys, the values can have associated semantics beyond their text.
 For example, ISBNs can be normalized to ISBN-13 and have their checksums
 corrected.
 
+## Installation
+
+The easiest (?) way to install `fna` is from
+[PyPi](https://pypi.org/project/file-name-attributes/) using `pip`.
+Depending on your system, one of the following may work:
+
+- `pip install file-name-attributes`
+- `pip install --user file-name-attributes`
+- `pipx install file-name-attributes`
+- `python -m pip install file-name-attributes`
+
 ## Usage
 
 By default, `fna` follows a subcommand familiar from tools like `git`, except
@@ -32,6 +49,8 @@ that it's typical to chain multiple subcommands in a single invocation.
 
 Run `fna help` to get a list of subcommands, and `fna help ‹subcommand›`
 for information on a particular subcommand.
+
+See [doc/fna.md](doc/fna.md) for more information.
 
 (More complicated operations are possible using Python expressions rather
 than the subcommands, but this is not yet stable or documented.)
@@ -62,8 +81,10 @@ $ fna file '/tmp/My Book.pdf' add isbn 1234567890 json encode
 
 ## Configuration
 
-`fna` tries to read `vlju/config.toml` or  `fna/config.toml` from XDG locations
-(e.g. `$HOME/.config/`). The former is shared by all tools using the Vlju
+Unless otherwise directed by a command line option,
+`fna` tries to read `vlju/config.toml` or `fna/config.toml`
+from XDG locations (e.g. `$HOME/.config/`).
+The former is shared by all tools using the Vlju
 library, while the latter applies only to the `fna` command.
 
 This file can define keys and classes associated with web sites,
@@ -71,6 +92,9 @@ mapping from a compact ID to a URL. (The other direction does not yet exist.)
 The distribution file `config/config.toml` contains some examples.
 
 ## Implementation
+
+The current public home for `fna` is
+[https://codeberg.org/datatravelandexperiments/fna](https://codeberg.org/datatravelandexperiments/fna)
 
 `fna` is written in Python primarily because (in the original version) the
 standard library `shlex` module provided input file tokenization ‘for free’
@@ -106,11 +130,9 @@ Code implementing the subcommands.
 
 The command line tool `fna`.
 
-## TODO
+### TODO
 
 - Better documentation.
 - Logging options.
 - Better error handling. Too much still just raises exceptions.
 - Investigate constructing SiteBase values from URL strings.
-
-<!-- vim:set textwidth=79: -->
