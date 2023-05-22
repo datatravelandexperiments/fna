@@ -11,7 +11,7 @@ class Info(URI):
     long:   uri
     """
 
-    def __init__(self, s: str, **kwargs):
+    def __init__(self, s: str, **kwargs) -> None:
         super().__init__(
             s,
             scheme='info',

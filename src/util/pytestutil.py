@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: MIT
+"""Utilities for testing."""
 
 from collections.abc import Iterable, Iterator, Mapping, Sequence
 

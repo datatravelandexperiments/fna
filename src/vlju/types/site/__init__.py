@@ -19,7 +19,7 @@ class SiteBase(URL):
     fragment_template: Template = None
     normalize_template: Template = None
 
-    def __init__(self, s: str):
+    def __init__(self, s: str) -> None:
         if self.normalize_template:
             s = util.fearmat.fearmat(self.normalize_template, {'x': s})
         super().__init__(s, scheme=self._scheme, authority=self._authority)

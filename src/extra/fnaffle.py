@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: MIT
+"""Move files to directories based on matching attributes."""
 
 import argparse
 import sys

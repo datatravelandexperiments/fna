@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: MIT
+"""Pre-configured VljuM."""
 
 from collections.abc import Callable, Mapping
 from pathlib import Path
@@ -14,7 +15,7 @@ from vljumap.factory import MappedFactory, default_factory
 V = Vlju
 
 class M(VljuM):
-    """Configured VljuM."""
+    """Configured subclass of VljuM."""
 
     raw_factory = default_factory
     typed_factory = MappedFactory(VLJU_TYPES)
@@ -36,7 +37,7 @@ class M(VljuM):
     }
 
     @classmethod
-    def configure_sites(cls, site: Mapping[str, Mapping[str, Any]]):
+    def configure_sites(cls, site: Mapping[str, Mapping[str, Any]]) -> None:
         for k, s in site.items():
             cls.typed_factory.setitem(k, site_class(**s))
 
@@ -66,7 +67,7 @@ class M(VljuM):
 def _make_free_function(cls: type, name: str) -> Callable:
     method = getattr(cls, name)
 
-    def f(*args, **kwargs):
+    def f(*args, **kwargs) -> Any:  # noqa: ANN401
         return method(cls(), *args, **kwargs)
 
     return f

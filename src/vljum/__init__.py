@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: MIT
+"""VljuMap operations."""
 
 import copy
 import re
@@ -25,7 +26,7 @@ class VljuM(VljuMap):
 
     default_registry: MutableMapping[str, Registry] = defaultdict(Registry)
 
-    def __init__(self, i=None):
+    def __init__(self, i: VljuMap | File | Path | str | object = None) -> None:
         super().__init__()
         self.factory = copy.copy(self.default_registry['factory'])
         self.encoder = copy.copy(self.default_registry['encoder'])
@@ -249,7 +250,7 @@ class VljuM(VljuMap):
                 f'({dict(self.data)!r},path={self.modified_path})')
 
     @classmethod
-    def configure_options(cls, options: Mapping[str, Any]):
+    def configure_options(cls, options: Mapping[str, Any]) -> None:
         for r in cls.default_registry:
             if (v := options.get(r)) is not None:
                 cls.default_registry[r].set_default(v)

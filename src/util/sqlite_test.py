@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: MIT
+"""Test util.sqlite."""
 
 import sqlite3
 
@@ -7,10 +8,14 @@ import pytest
 from util.sqlite import SQLite
 
 class ValueDatabase(SQLite):
+    """Test database containing a table with one column."""
+
     on_connect = ['PRAGMA application_id = 0x12345679;']
     on_create = ['CREATE TABLE test (value INTEGER);']
 
 class KeyValueDatabase(SQLite):
+    """Test database containing a table with two columns."""
+
     on_create = ['CREATE TABLE test (key INTEGER, value INTEGER);']
 
 def test_database():
@@ -120,7 +125,7 @@ def test_database_load():
         assert cur.fetchone() is None
 
         cur = db.load('test', ['value'], key=1)
-        assert cur.fetchone() == (42,)
+        assert cur.fetchone() == (42, )
         assert cur.fetchone() is None
 
 def test_database_execute_unnamed_parameters():

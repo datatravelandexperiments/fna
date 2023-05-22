@@ -50,7 +50,7 @@ def as13(s: str, key: str) -> str | None:
 class EAN13(URN):
     """Represents an EAN-13 article number."""
 
-    def __init__(self, v: str, k: str = 'ean13'):
+    def __init__(self, v: str, k: str = 'ean13') -> None:
         u = to13(v)
         if u is None:
             raise ValueError(v)

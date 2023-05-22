@@ -8,7 +8,7 @@ import re
 import shlex
 import warnings
 
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Generator, Iterable
 from typing import NamedTuple
 
 import util.escape as esc
@@ -29,7 +29,7 @@ class Encoder:
                  encode: EncodeCallable | None,
                  decode: DecodeCallable | None,
                  desc: str | None = None,
-                 description: str | None = None):
+                 description: str | None = None) -> None:
         self.name = name
         self.desc = desc or name
         self.description = description
@@ -95,6 +95,8 @@ V3_DESCRIPTION = """
 """ + V3_GRAMMAR
 
 class V3Config(NamedTuple):
+    """Properties used by V3 and variants."""
+
     quote: esc.Escape
     attr_start: str = '['
     attr_end: str = ']'
@@ -321,7 +323,7 @@ def _v1_dec_iter(config: V3Config, s: str) -> Iterable[tuple[str, str]]:
         for k, v in _v3_dec_attr(config, a):
             yield (k, v)
 
-def _v1_dec_author_title(s: str):
+def _v1_dec_author_title(s: str) -> Generator[tuple[str, str], None, None]:
     if ':' in s:
         author, s = s.split(':', 1)
         for i in author.split(';'):
@@ -372,7 +374,7 @@ V0_RE = re.compile(
         )$
         """, re.VERBOSE)
 
-def _v0_dec_iter(s: str):
+def _v0_dec_iter(s: str) -> Generator[tuple[str, str], None, None]:
     if m := V0_RE.fullmatch(s):
         s = m.group('rest')
     yield from _v1_dec_author_title(s)
@@ -443,7 +445,7 @@ SFC_TAIL_RE = re.compile(
         )$
         """, re.X)
 
-def _sfc_dec_iter(s: str):
+def _sfc_dec_iter(s: str) -> Generator[tuple[str, str], None, None]:
     while True:
         if m := SFC_TAIL_RE.fullmatch(s):
             for k in ('date', 'edition'):
@@ -498,7 +500,7 @@ def json_encode(n: VljuMap, mode: str | None = None) -> str:
 def json_decode(n: VljuMap, s: str, factory: VljuFactory) -> VljuMap:
     return n.add_pairs(_json_dec_iter(s), factory)
 
-def _json_dec_iter(s: str):
+def _json_dec_iter(s: str) -> Generator[tuple[str, str], None, None]:
     for k, vl in py_json.loads(s).items():
         if isinstance(vl, list):
             for v in vl:
@@ -573,7 +575,7 @@ def keyvalue_encode(n: VljuMap, mode: str | None = None) -> str:
 def keyvalue_decode(n: VljuMap, s: str, factory: VljuFactory) -> VljuMap:
     return n.add_pairs(_keyvalue_dec_iter(s), factory)
 
-def _keyvalue_dec_iter(s: str):
+def _keyvalue_dec_iter(s: str) -> Generator[tuple[str, str], None, None]:
     for kv in s.split('\n'):
         if kv:
             k, v = kv.split(':', 1)
@@ -612,7 +614,7 @@ def _csv_enc(n: VljuMap, mode: str | None, **kwargs) -> str:
             w.writerow(kv)
         return f.getvalue()
 
-def _csv_dec_iter(s: str, **kwargs):
+def _csv_dec_iter(s: str, **kwargs) -> Generator[tuple[str, str], None, None]:
     for row in py_csv.reader(s.split('\n'), **kwargs):
         if row:
             k, v = row

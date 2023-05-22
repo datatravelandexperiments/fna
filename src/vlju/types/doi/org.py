@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+"""DOI organization data."""
+
 from collections.abc import Sequence
 
 from vlju.types.doi import DOI

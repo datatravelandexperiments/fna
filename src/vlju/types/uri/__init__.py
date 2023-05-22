@@ -23,7 +23,7 @@ class Authority:
                  host: str | Self,
                  port: int | None = None,
                  username: str | None = None,
-                 password: str | None = None):
+                 password: str | None = None) -> None:
 
         if isinstance(host, Authority):
             self.username = host.username
@@ -109,7 +109,7 @@ class URI(Vlju):
                 `squery()` `sfragment()` `sr()` `sq()`
     """
 
-    def __init__(self, s, **kwargs):
+    def __init__(self, s: str | object, **kwargs) -> None:
         if isinstance(s, str):
             if kwargs:
                 v: str = s
@@ -209,7 +209,7 @@ class URI(Vlju):
     def lv(self) -> str:
         return self.uri()
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str | None) -> str:
         if key in ('scheme', 'path', 'authority', 'query', 'fragment', 'spath',
                    'sscheme', 'sauthority', 'squery', 'sfragment'):
             return getattr(self, key)()

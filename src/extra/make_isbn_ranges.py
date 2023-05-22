@@ -20,7 +20,7 @@ from vlju.types.ean.isbn import RangeAgencies, Ranges
 class RangesFromXml(Ranges):
     """Load ranges from an XML file."""
 
-    def __init__(self, xmlfile: Path):
+    def __init__(self, xmlfile: Path) -> None:
         """Load ISBN ranges from a file."""
         root = ElT.parse(xmlfile).getroot()
         assert root.tag == 'ISBNRangeMessage'
@@ -31,10 +31,10 @@ class RangesFromXml(Ranges):
         for rg in root.iter('RegistrationGroups'):
             for g in rg.iter('Group'):
                 self._load_group(g, starts, lengths, self.agencies)
-        super().__init__(array.array('Q', starts),
-                         array.array('I', lengths))
+        super().__init__(array.array('Q', starts), array.array('I', lengths))
 
-    def _load_group(self, g, starts, lengths, agencies):
+    def _load_group(self, g: ElT.Element, starts: array.array,
+                    lengths: array.array, agencies: RangeAgencies) -> None:
         s_prefix = g.findtext('Prefix')
         assert s_prefix is not None
         s_compact_prefix = s_prefix.replace('-', '')
@@ -81,7 +81,7 @@ class RangesFromXml(Ranges):
             starts.append(i_first)
             lengths.append(i_lengths)
 
-    def write(self, f: TextIO):
+    def write(self, f: TextIO) -> None:
         f.write('\nAGENCY = ')
         pprint.pprint(self.agencies, stream=f)
         f.write(f'\nSTART = {self._start!r}\n')

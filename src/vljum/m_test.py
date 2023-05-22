@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: MIT
+"""Test vljum.m."""
 
 import pprint
 
@@ -14,7 +15,7 @@ from vlju.types.all import ISBN, URL, File
 from vljum.m import M, V
 
 class TstVlju(V):
-    pass
+    """Vlju subclass for testing."""
 
 def tst_vlju_factory(k: str, v: str) -> tuple[str, TstVlju]:
     return (k, TstVlju(v))

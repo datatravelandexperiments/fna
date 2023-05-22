@@ -5,10 +5,14 @@ from vlju.types.site import SiteBase, site_class
 from vlju.types.uri import Authority
 
 class SiteA(SiteBase):
+    """Example SiteBase."""
+
     _scheme = 'https'
     _authority = Authority('example.com')
 
 class SiteB(SiteA):
+    """Example SiteBase."""
+
     normalize_template = '{x.upper()}'
 
 def test_site_base_constructor():
@@ -21,7 +25,9 @@ def test_site_base_normalize():
 
 def test_site_class():
     SiteC = site_class(  # noqa: non-lowercase-variable-in-function
-        'SiteC', host='example.com', path='item/{x}')
+        'SiteC',
+        host='example.com',
+        path='item/{x}')
     c0 = SiteC('000')
     c1 = SiteC('111')
     assert c0.lv() == 'https://example.com/item/000'

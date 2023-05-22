@@ -6,7 +6,7 @@ from vlju.types.ean import EAN13, as13
 class ISMN(EAN13):
     """Represents an ISMN (International Standard Music Number)."""
 
-    def __init__(self, s: str):
+    def __init__(self, s: str) -> None:
         v = as13(s, 'ismn')
         if v is None:
             msg = f'value {s} is not an ISMN'

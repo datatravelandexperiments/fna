@@ -16,7 +16,7 @@ from vlju.types.url import URL
 class Prefix(list[int]):
     """Represents a DOI (or Handle) prefix."""
 
-    def __init__(self, p: Self | Sequence[int] | str):
+    def __init__(self, p: Self | Sequence[int] | str) -> None:
         if isinstance(p, str):
             p = list(map(int, p.split('.')))
         super().__init__(p)
@@ -58,7 +58,7 @@ class DOI(Info):
             (?P<suffix>.+)
             """, re.VERBOSE)
 
-    def __init__(self, s: str | None = None, **kwargs):
+    def __init__(self, s: str | None = None, **kwargs) -> None:
         if s is None:
             prefix = Prefix(kwargs['prefix'])
             suffix = needtype(kwargs['suffix'], str)
@@ -86,7 +86,7 @@ class DOI(Info):
     def hdl(self, hdl: str = 'hdl') -> str:
         return f'info:{hdl}/{self.spath()}'
 
-    def doi(self):
+    def doi(self) -> str:
         if self._prefix.is_doi():
             return f'doi:{self._prefix}/{escape.path.encode(self._suffix)}'
         return super().lv()
@@ -111,7 +111,7 @@ class DOI(Info):
 
     # URI overrides:
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         try:
             return (self._prefix == other._prefix  # noqa: SLF001
                     and self._suffix == other._suffix)  # noqa: SLF001
@@ -135,5 +135,5 @@ class DOI(Info):
     def lv(self) -> str:
         return self.doi()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'DOI(prefix={self._prefix!r},suffix={self._suffix!r})'

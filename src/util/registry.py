@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT
+"""Argument polymorphism utility."""
 
-from collections.abc import KeysView, Mapping
+from collections.abc import Iterator, KeysView, Mapping
 from typing import Generic, Self, TypeVar
 
 T = TypeVar('T')
@@ -26,7 +27,7 @@ class Registry(Generic[T]):
         r.default = self.default
         return r
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         return iter(self.dict)
 
     def update(self, m: Mapping[str, T]) -> Self:

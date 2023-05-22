@@ -1,8 +1,10 @@
 # SPDX-License-Identifier: MIT
+"""URL - Vlju representable as a URL."""
 
 from vlju.types.uri import URI
 
 class URL(URI):
+    """Represents a URL."""
 
     def cast_params(self, t: object) -> tuple[str, dict]:
         if t is URL:

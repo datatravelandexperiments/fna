@@ -14,7 +14,7 @@ class File(URI):
 
     _authority = Authority('')
 
-    def __init__(self, s: object = ''):
+    def __init__(self, s: object = '') -> None:
         # `File` does not use the URI `path` component. Instead, it stores
         # the path as a `pathlib.Path` in `self._file`.
         if hasattr(s, 'cast_params'):
@@ -52,11 +52,10 @@ class File(URI):
 
     # Vlju overrides:
 
-    def __eq__(self, other):
-        try:
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, URI):
             return self._file == other._file  # noqa: SLF001
-        except AttributeError:
-            return False
+        return False
 
     def __str__(self) -> str:
         return str(self._file)

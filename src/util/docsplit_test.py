@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: MIT
+"""Test util.docsplit."""
 
 from util.docsplit import docsplit
 

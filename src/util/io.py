@@ -6,17 +6,19 @@ import io
 import os
 import sys
 
+from dataclasses import dataclass
 from pathlib import Path
 from typing import IO, cast
 
 # Paths and open files are accepted.
 PathLike = io.IOBase | IO | os.PathLike | str
 
+@dataclass
 class IOState:
+    """Hold IO and whether we opened it."""
 
-    def __init__(self, file: IO, *, opened: bool):
-        self.file = file
-        self.opened = opened
+    file: IO
+    opened: bool
 
 def opener(file: PathLike | None,
            mode: str,

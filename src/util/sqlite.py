@@ -31,7 +31,10 @@ class SQLite:
     on_connect: Iterable[str] | None = None
     on_create: Iterable[str] | None = None
 
-    def __init__(self, filename: PathLike = '', mode: str = '', **kwargs):
+    def __init__(self,
+                 filename: PathLike = '',
+                 mode: str = '',
+                 **kwargs) -> None:
         if not mode:
             mode = 'ro' if filename else 'rw'
         self._filename: PathLike = filename
@@ -172,7 +175,7 @@ class SQLite:
         q += ' WHERE ' + ' AND '.join(f'{p.column[k]} = :{k}' for k in p.value)
         return self.connection().execute(q, p.value)
 
-    def check_table_columns(self, table: str, columns: Iterable[str]):
+    def check_table_columns(self, table: str, columns: Iterable[str]) -> None:
         """Check that the columns exist in the table."""
         if not self._table_columns:
             self._init_table_column_cache()
@@ -186,7 +189,7 @@ class SQLite:
                 message = f'column {c!r} does not exist in {table!r}'
                 raise sqlite3.ProgrammingError(message)
 
-    def _init_table_column_cache(self):
+    def _init_table_column_cache(self) -> None:
         c = self.connection().execute(
             'SELECT name FROM sqlite_master WHERE type == "table"')
         while (row := c.fetchone()):
@@ -195,25 +198,26 @@ class SQLite:
 
     def _load_table_column_cache(self, table: str) -> list[str]:
         r = []
-        c = self.connection().execute(
-            f'PRAGMA TABLE_INFO({quote_id(table)})')
+        c = self.connection().execute(f'PRAGMA TABLE_INFO({quote_id(table)})')
         while (row := c.fetchone()):
             column = row[1]
             r.append(column)
         self._table_columns[table] = r
         return r
 
-    def clear_table_column_cache(self):
+    def clear_table_column_cache(self) -> None:
         self._table_columns = {}
 
 def quote_id(s: str) -> str:
     return '"' + s.replace('"', '""') + '"'
 
 class BoundParameters:
-    column: dict[str, str]  # Map from parameter name to quoted column name.
-    value: dict[str, Any]   # Map from parameter name to value.
+    """Sanitization of bound parameters."""
 
-    def __init__(self, column_value: dict[str, Any]):
+    column: dict[str, str]  # Map from parameter name to quoted column name.
+    value: dict[str, Any]  # Map from parameter name to value.
+
+    def __init__(self, column_value: dict[str, Any]) -> None:
         self.column = {}
         self.value = {}
         for i, k in enumerate(column_value):

@@ -1,8 +1,11 @@
 # SPDX-License-Identifier: MIT
+"""Kinds of URN. Not implemented."""
 
-KIND = {}
+from vlju import Vlju
 
-ORGANIZATION = {}
+KIND: dict[str, type[Vlju] | None] = {}
+
+ORGANIZATION: dict[str, str] = {}
 
 # https://www.iana.org/assignments/urn-namespaces/urn-namespaces.xhtml
 

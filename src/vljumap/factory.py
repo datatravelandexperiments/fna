@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""VljuFactory."""
+"""Vlju factories."""
 
 from collections.abc import Callable, Mapping
 from typing import Self
@@ -10,16 +10,17 @@ from vlju import Vlju
 VljuFactory = Callable[[str, str], tuple[str, Vlju]]
 
 class FactoryError(Error):
-    pass
+    """Factory error."""
 
 def default_factory(k: str, v: str) -> tuple[str, Vlju]:
     return (k, Vlju(v))
 
 class MappedFactory:
+    """VljuFactory that maps keys to Vlju types."""
 
     def __init__(self,
                  kmap: Mapping[str, type[Vlju]],
-                 default: type[Vlju] = Vlju):
+                 default: type[Vlju] = Vlju) -> None:
         self.kmap = dict(kmap)
         self.default = default
 

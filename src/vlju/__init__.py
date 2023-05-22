@@ -21,7 +21,7 @@ class Vlju:
         value → `_value`
     """
 
-    def __init__(self, s: str):
+    def __init__(self, s: str) -> None:
         if not isinstance(s, str):
             raise TypeError(s)
         self._value = s
@@ -50,7 +50,7 @@ class Vlju:
         except KeyError:
             return default
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str | None) -> str:
         match key:
             case None | 'default' | 'short' | 'str':
                 return str(self)
@@ -60,5 +60,5 @@ class Vlju:
                 return repr(self)
         raise KeyError(key)
 
-    def cast_param_error(self, t):
+    def cast_param_error(self, t: object) -> TypeError:
         return TypeError((self, t))

@@ -13,13 +13,13 @@ def constraint(t: object, s: str) -> None:
     if not t:  # pragma: no branch
         raise RuntimeError(s)  # pragma: no cover
 
-RangeAgencies = dict[tuple[int, int], str]
+RangeAgencies = dict[tuple[str, str], str]
 
 class Ranges:
     """Provides ISBN splitting."""
 
     def __init__(self, start: array.array,
-                 split: array.array):
+                 split: array.array) -> None:
         # SoA: _start is sorted lower bounds, _split is corresponding split.
         self._start = start
         self._split = split
@@ -53,7 +53,7 @@ class ISBN(EAN13):
     _ranges = Ranges(isbn_ranges.START, isbn_ranges.SPLIT)
     split_all = False
 
-    def __init__(self, s: str, *, split: bool = False):
+    def __init__(self, s: str, *, split: bool = False) -> None:
         # self._value contains an unsplit ISBN-13 string.
         v = as13(s, 'isbn')
         if v is None:

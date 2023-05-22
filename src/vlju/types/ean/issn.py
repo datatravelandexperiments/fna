@@ -8,7 +8,7 @@ from vlju.types.ean import EAN13, as13
 class ISSN(EAN13):
     """Represents an ISSN (International Standard Serial Number)."""
 
-    def __init__(self, s: str):
+    def __init__(self, s: str) -> None:
         # self._value contains an unsplit ISSN-13 string.
         v = as13(s, 'issn')
         if v is None:

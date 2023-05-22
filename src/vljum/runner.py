@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Execute commands."""
+"""Command DSL."""
 
 import textwrap
 
@@ -11,9 +11,11 @@ from util.registry import Registry
 from vljum.m import M
 
 class Runner:
+    """Command DSL."""
+
     commands: dict[str, Callable] = {}
 
-    def __init__(self, m: M | None = None):
+    def __init__(self, m: M | None = None) -> None:
         self.tokens: Iterator[str] | None = None
         self.m = M() if m is None else m
         self.report = False
@@ -52,7 +54,7 @@ class Runner:
             raise Error(message)
         return t
 
-    def command_add(self, cmd: str):
+    def command_add(self, cmd: str) -> None:
         """
         Add an attribute.
 
@@ -65,7 +67,7 @@ class Runner:
         self.m.add(key, val)
         self.report = True
 
-    def command_decode(self, cmd: str):
+    def command_decode(self, cmd: str) -> None:
         """
         Decode a string.
 
@@ -76,7 +78,7 @@ class Runner:
         self.m.decode(self.need(f'{cmd}: expected string'))
         self.report = True
 
-    def command_decoder(self, cmd: str):
+    def command_decoder(self, cmd: str) -> None:
         """
         Set the current active decoder.
 
@@ -84,7 +86,7 @@ class Runner:
         """
         self.set_registry(self.m.decoder, cmd)
 
-    def command_delete(self, cmd: str):
+    def command_delete(self, cmd: str) -> None:
         """
         Delete all attributes for one or more ‹key›s.
 
@@ -97,11 +99,11 @@ class Runner:
             self.m.remove(key)
         self.report = True
 
-    def command_dir(self, cmd: str):
+    def command_dir(self, cmd: str) -> None:
         self.m.with_dir(self.need(f'{cmd}: expected directory'))
         self.report = True
 
-    def command_encode(self, _: str):
+    def command_encode(self, _: str) -> None:
         """
         Encode and prints the current attributes.
 
@@ -112,7 +114,7 @@ class Runner:
         print(self.m.encode())
         self.report = False
 
-    def command_encoder(self, cmd: str):
+    def command_encoder(self, cmd: str) -> None:
         """
         Set the current active encoder.
 
@@ -120,7 +122,7 @@ class Runner:
         """
         self.set_registry(self.m.encoder, cmd)
 
-    def command_extract(self, cmd: str):
+    def command_extract(self, cmd: str) -> None:
         """
         Extract attributes for one or more keys.
 
@@ -132,7 +134,7 @@ class Runner:
         self.m = self.m.submap(self.need(f'{cmd}: expected keys').split(','))
         self.report = True
 
-    def command_factory(self, cmd: str):
+    def command_factory(self, cmd: str) -> None:
         """
         Set the current active factory.
 
@@ -140,7 +142,7 @@ class Runner:
         """
         self.set_registry(self.m.factory, cmd)
 
-    def command_file(self, cmd: str):
+    def command_file(self, cmd: str) -> None:
         """
         Decode a file name.
 
@@ -151,7 +153,7 @@ class Runner:
         self.m.file(self.need(f'{cmd}: expected filename'))
         self.report = True
 
-    def command_filename(self, _: str):
+    def command_filename(self, _: str) -> None:
         """
         Encode and print the current attributes as a file name.
 
@@ -162,7 +164,7 @@ class Runner:
         print(self.m.filename())
         self.report = False
 
-    def command_help(self, _: str):
+    def command_help(self, _: str) -> None:
         """
         Show information about a subcommand, or list subcommands.
 
@@ -193,7 +195,7 @@ class Runner:
             for name in sorted(self.help.keys()):
                 print(f'  {name:8} - {self.help[name][0][0]}')
 
-    def command_mode(self, cmd: str):
+    def command_mode(self, cmd: str) -> None:
         """
         Set the current active mode.
 
@@ -201,7 +203,7 @@ class Runner:
         """
         self.set_registry(self.m.mode, cmd)
 
-    def command_order(self, cmd: str):
+    def command_order(self, cmd: str) -> None:
         """
         Arranges keys.
 
@@ -216,10 +218,10 @@ class Runner:
         self.m = self.m.sortkeys(None if t == '--all' else t.split(','))
         self.report = True
 
-    def command_quiet(self, _: str):
+    def command_quiet(self, _: str) -> None:
         self.report = False
 
-    def command_remove(self, cmd: str):
+    def command_remove(self, cmd: str) -> None:
         """
         Remove a specific attribute.
 
@@ -232,11 +234,11 @@ class Runner:
         self.m.remove(key, val)
         self.report = True
 
-    def command_rename(self, _: str):
+    def command_rename(self, _: str) -> None:
         self.m.rename()
         self.report = False
 
-    def command_set(self, cmd: str):
+    def command_set(self, cmd: str) -> None:
         """
         Set an attribute.
 
@@ -250,7 +252,7 @@ class Runner:
         self.m.reset(key, val)
         self.report = True
 
-    def command_sort(self, cmd: str):
+    def command_sort(self, cmd: str) -> None:
         """
         Sorts values for a given key or all keys.
 
@@ -263,11 +265,11 @@ class Runner:
             self.m.sort(*t.split(','))
         self.report = True
 
-    def command_suffix(self, cmd: str):
+    def command_suffix(self, cmd: str) -> None:
         self.m.with_suffix(self.need(f'{cmd}: expected suffix'))
         self.report = True
 
-    def command_uri(self, _: str):
+    def command_uri(self, _: str) -> None:
         """
         Print attribute URI(s).
 
@@ -279,7 +281,7 @@ class Runner:
         print(self.m.uri())
         self.report = False
 
-    def command_url(self, _: str):
+    def command_url(self, _: str) -> None:
         """
         Print attribute URL(s).
 
@@ -293,19 +295,19 @@ class Runner:
             print(u)
         self.report = False
 
-    def set_coder(self, cmd: str):
+    def set_coder(self, cmd: str) -> None:
         if cmd in self.m.decoder:
             self.m.decoder.set_default(cmd)
         if cmd in self.m.encoder:  # pragma: no branch
             self.m.encoder.set_default(cmd)
 
-    def set_factory(self, cmd: str):
+    def set_factory(self, cmd: str) -> None:
         self.m.factory.set_default(cmd)
 
-    def set_mode(self, cmd: str):
+    def set_mode(self, cmd: str) -> None:
         self.m.mode.set_default(cmd)
 
-    def set_registry(self, r: Registry, cmd: str):
+    def set_registry(self, r: Registry, cmd: str) -> None:
         keys = r.keys()
         choices = ', '.join(f'‘{k}’' for k in keys)
         message = f'{cmd}: expected one of: {choices}'
@@ -314,7 +316,7 @@ class Runner:
             raise Error(message)
         r.set_default(t)
 
-    def run(self, args: Iterable[str]):
+    def run(self, args: Iterable[str]) -> None:
         self.tokens = iter(args)
         self.report = False
         while (cmd := self.token()) is not None:
@@ -326,5 +328,5 @@ class Runner:
         if self.report:
             print(self.m)
 
-    def runs(self, s: str):
+    def runs(self, s: str) -> None:
         self.run(s.split())

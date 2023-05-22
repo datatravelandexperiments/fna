@@ -26,7 +26,7 @@ class LCCN(Info):
 
     _lc = Authority('lccn.loc.gov')
 
-    def __init__(self, s: str):
+    def __init__(self, s: str) -> None:
         super().__init__(normalize(s), authority='lccn')
 
     def cast_params(self, t: object) -> tuple[str, dict]:

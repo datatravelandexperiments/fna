@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: MIT
+"""Test vljum.runner."""
 
 from collections.abc import Iterable, Sequence
 from pathlib import Path

@@ -18,7 +18,7 @@ class URN(URI):
                  s: str,
                  authority: Authority | str | None = None,
                  q: str | None = None,
-                 r: str | None = None):
+                 r: str | None = None) -> None:
         super().__init__(
             s,
             scheme='urn',

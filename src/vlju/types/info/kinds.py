@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: MIT
+"""Kinds of info: URI."""
 
 # https://tools.ietf.org/html/rfc4452
 

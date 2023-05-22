@@ -1,10 +1,15 @@
 # SPDX-License-Identifier: MIT
 """MultiMap."""
 
-import collections
-import collections.abc
-
-from collections.abc import Callable, Iterable
+from collections import defaultdict
+from collections.abc import (
+    Callable,
+    Generator,
+    ItemsView,
+    Iterable,
+    Iterator,
+    KeysView,
+)
 from typing import Generic, Self, TypeVar
 
 K = TypeVar('K')
@@ -16,17 +21,17 @@ W = TypeVar('W')
 class MultiMap(Generic[K, V]):
     """Multi-valued dictionary."""
 
-    def __init__(self):
-        self.data = collections.defaultdict(list[V])
+    def __init__(self) -> None:
+        self.data: defaultdict[K, list[V]] = defaultdict(list[V])
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         # pylint:disable=unidiomatic-typecheck
         return (type(self) == type(other)) and (self.data == other.data)
 
     def __getitem__(self, k: K) -> list[V]:
         return self.data[k]
 
-    def __delitem__(self, k: K):
+    def __delitem__(self, k: K) -> None:
         if k in self.data:
             del self.data[k]
 
@@ -39,7 +44,7 @@ class MultiMap(Generic[K, V]):
     def __repr__(self) -> str:
         return f'MultiMap({dict(self.data)!r})'
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[K]:
         return iter(self.data)
 
     def copy(self) -> Self:
@@ -54,16 +59,16 @@ class MultiMap(Generic[K, V]):
             return []
         return default
 
-    def keys(self):
+    def keys(self) -> KeysView[K]:
         return self.data.keys()
 
-    def pairs(self):
+    def pairs(self) -> Generator[tuple[K, V], None, None]:
         """Yield (k, v), potentially repeating k."""
         for k, vlist in self.data.items():
             for v in vlist:
                 yield (k, v)
 
-    def lists(self) -> collections.abc.ItemsView[K, list[V]]:
+    def lists(self) -> ItemsView[K, list[V]]:
         """Yield (k, vlist)."""
         return self.data.items()
 
@@ -96,7 +101,7 @@ class MultiMap(Generic[K, V]):
         if keys is None:
             keys = sorted(self.data.keys())
         old = self.data
-        self.data = collections.defaultdict(list[V])
+        self.data = defaultdict(list[V])
         for k in keys:
             if k in old:
                 self.data[k] = old[k]

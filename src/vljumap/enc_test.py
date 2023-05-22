@@ -7,7 +7,8 @@ from vlju import Vlju
 from vlju.types.doi import DOI
 from vljumap import VljuMap, enc
 
-class TstEncVlju(Vlju):  # pylint: disable=W0223
+class TstEncVlju(Vlju):
+    """Subclass of Vlju for testing."""
 
     @staticmethod
     def factory(key: str, value: str) -> tuple[str, Vlju]:
