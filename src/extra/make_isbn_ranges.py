@@ -12,6 +12,7 @@ import pprint
 import sys
 import xml.etree.ElementTree as ElT
 
+from collections.abc import MutableSequence
 from pathlib import Path
 from typing import TextIO
 
@@ -33,13 +34,16 @@ class RangesFromXml(Ranges):
                 self._load_group(g, starts, lengths, self.agencies)
         super().__init__(array.array('Q', starts), array.array('I', lengths))
 
-    def _load_group(self, g: ElT.Element, starts: array.array,
-                    lengths: array.array, agencies: RangeAgencies) -> None:
+    def _load_group(self, g: ElT.Element, starts: MutableSequence[int],
+                    lengths: MutableSequence[int],
+                    agencies: RangeAgencies) -> None:
         s_prefix = g.findtext('Prefix')
         assert s_prefix is not None
         s_compact_prefix = s_prefix.replace('-', '')
         ts_prefix: tuple[str, ...] = tuple(s_prefix.split('-'))
-        agencies[ts_prefix] = g.findtext('Agency')
+        agency = g.findtext('Agency')
+        if agency:
+            agencies[ts_prefix] = agency
         ti_prefix_length: tuple[int, ...] = tuple(map(len, ts_prefix))
         remaining = 12 - sum(ti_prefix_length)
         logging.debug('prefix %s %s + %d', s_prefix, ti_prefix_length,

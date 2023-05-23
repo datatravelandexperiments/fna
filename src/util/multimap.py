@@ -26,7 +26,9 @@ class MultiMap(Generic[K, V]):
 
     def __eq__(self, other: object) -> bool:
         # pylint:disable=unidiomatic-typecheck
-        return (type(self) == type(other)) and (self.data == other.data)
+        if isinstance(other, MultiMap):
+            return (type(self) == type(other)) and (self.data == other.data)
+        return False
 
     def __getitem__(self, k: K) -> list[V]:
         return self.data[k]
@@ -91,7 +93,7 @@ class MultiMap(Generic[K, V]):
             return self.data[k][-1]
         return None
 
-    def extend(self, other: Self) -> Self:
+    def extend(self, other: 'MultiMap') -> Self:
         for k, v in other.pairs():
             self.add(k, v)
         return self

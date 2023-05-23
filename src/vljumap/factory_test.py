@@ -9,7 +9,7 @@ from vlju.types.ean import EAN13
 from vlju.types.ean.isbn import ISBN
 from vlju.types.ean.ismn import ISMN
 from vlju.types.ean.issn import ISSN
-from vljumap.factory import FactoryError, MappedFactory
+from vljumap.factory import FactoryError, LooseMappedFactory, MappedFactory
 
 # yapf: disable
 CASES = [
@@ -22,8 +22,12 @@ CASES = [
 # yapf: enable
 
 @pytest.fixture(name='factory')
-def fixture_factory():
+def fixture_mapped_factory():
     return MappedFactory({key: cls for key, cls, _ in CASES}, Vlju)
+
+@pytest.fixture(name='loose_factory')
+def fixture_loose_factory():
+    return LooseMappedFactory({key: cls for key, cls, _ in CASES}, Vlju)
 
 @pytest.mark.parametrize(*it2p(CASES))
 def test_mapped_factory(factory, key, cls, value):
@@ -43,4 +47,9 @@ def test_mapped_factory_setitem(factory):
 
 def test_mapped_factory_catch(factory):
     with pytest.raises(FactoryError):
-        _ = factory('isbn', 1)
+        _ = factory('isbn', '123')
+
+def test_loose_mapped_factory(loose_factory):
+    _, v = loose_factory('isbn', '123')
+    assert type(v) == Vlju  # pylint: disable=unidiomatic-typecheck
+    assert str(v) == '123'

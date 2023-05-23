@@ -527,7 +527,7 @@ SHELL_DESCRIPTION = """
 def shell_encode(n: VljuMap, mode: str | None = None) -> str:
     r = []
     for k, vlist in n.get_lists(mode):
-        v = ' '.join(shlex.quote(v) for v in vlist)
+        v = ' '.join(shlex.quote(v) for v in vlist if v is not None)
         r.append(f'{k}=({v})')
     return '\n'.join(r)
 

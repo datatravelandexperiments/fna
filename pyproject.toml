@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "file-name-attributes"
-version = "0.2.3"
+version = "0.2.4"
 description = "Manage key/value metadata in file names."
 license.text = "MIT License"
 readme = "README.md"
@@ -93,7 +93,7 @@ addopts = "--tb=native"
 src = ["src"]
 namespace-packages = ["src/extra"]
 line-length = 80
-allowed-confusables = ["‘", "’", "–", "—", "‹", "›", "ı"]
+allowed-confusables = ["‘", "’", "–", "—", "‹", "›", "ı", "′", "″"]
 select = ["ALL"]
 ignore = [
     "ANN002",   # missing-type-args: Nah.
@@ -151,7 +151,7 @@ indent_dictionary_value = true
 join_multiple_lines = false
 spaces_around_default_or_named_assign = false
 spaces_around_subscript_colon = true
-spaces_before_comment = 2
+spaces_before_comment = [17, 21, 25, 29, 33, 37, 41, 45, 49, 53, 57, 61, 65, 69]
 split_before_bitwise_operator = true
 split_before_arithmetic_operator = true
 split_before_dot = true

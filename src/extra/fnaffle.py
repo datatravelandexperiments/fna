@@ -159,7 +159,7 @@ def main(argv: list[str] | None = None) -> int:
                         print(f'{dst}: created')
                 if not args.dryrun:
                     try:
-                        m.dir(dst).rename()
+                        m.with_dir(dst).rename()
                     except FileExistsError as e:
                         print(f'{cmd}: file exists: {e}')
                 if args.dryrun or args.verbose:

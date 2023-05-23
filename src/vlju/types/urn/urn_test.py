@@ -22,7 +22,7 @@ def test_urn():
     assert u3.sauthority() == 'kind'
     assert u3.query() is None
     assert u3.fragment() is None
-    assert u3.sfragment() == ''  # noqa: compare-to-empty-string
+    assert u3.sfragment() == ''
 
     u4 = copy.copy(u3)
     assert u4 is not u3

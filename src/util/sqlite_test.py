@@ -124,7 +124,7 @@ def test_database_load():
         assert row in rows
         assert cur.fetchone() is None
 
-        cur = db.load('test', ['value'], key=1)
+        cur = db.load('test', 'value', key=1)
         assert cur.fetchone() == (42, )
         assert cur.fetchone() is None
 

@@ -34,3 +34,13 @@ class MappedFactory:
         except Exception as e:  # noqa: blind-except
             msg = f'{k} {v}'
             raise FactoryError(msg) from e
+
+class LooseMappedFactory(MappedFactory):
+    """VljuFactory that maps keys for Vlju types, and reverts to default."""
+
+    def __call__(self, k: str, v: str) -> tuple[str, Vlju]:
+        try:
+            value = self.kmap.get(k, self.default)(v)
+        except Exception:  # noqa: blind-except
+            value = self.default(v)
+        return (k, value)

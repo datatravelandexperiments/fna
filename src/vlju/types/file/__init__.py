@@ -53,7 +53,7 @@ class File(URI):
     # Vlju overrides:
 
     def __eq__(self, other: object) -> bool:
-        if isinstance(other, URI):
+        if isinstance(other, File):
             return self._file == other._file  # noqa: SLF001
         return False
 

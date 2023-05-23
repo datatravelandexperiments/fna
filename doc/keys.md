@@ -175,9 +175,24 @@ Might get a class with ISO-639 interpretation in the future.
 
 Timestamp (within a work; for points in time use `date`).
 
-- Accepted values: any
-
-This might get a class and parsing in the future.
+- Accepted values: Handles many unambiguous representations.
+  For example:
+    - 1:23:45:57.39
+    - 123days 5′10.3″
+    - 99
+    - 99:59
+    - 99:59.99
+    - 99:59:59.999
+    - 99:23:59:59.999
+    - 123 Hours 5:10.3
+    - 123 hours 10.25
+    - 123 hours 99s1024
+    - 1d 23 59 59
+    - 1 23H 59 59
+    - 1d 23 59 59s
+    - 1 day 14 µs
+- Representation: _days_`:`_hh_`:`_mm_`:`_ss_`.`_fraction_,
+  but the `.`_fraction_ and leading fields or digits are omitted if zero.
 
 ## `tcom`
 

@@ -112,11 +112,10 @@ class DOI(Info):
     # URI overrides:
 
     def __eq__(self, other: object) -> bool:
-        try:
+        if isinstance(other, DOI):
             return (self._prefix == other._prefix  # noqa: SLF001
                     and self._suffix == other._suffix)  # noqa: SLF001
-        except AttributeError:
-            return False
+        return False
 
     def authority(self) -> Authority:
         return self._i[self._kind]

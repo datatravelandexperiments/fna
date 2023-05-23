@@ -33,6 +33,12 @@ def test_multimap_eq():
     assert d is not e
     assert d == e
 
+def test_multimap_ne():
+    d = mk(CASES_KEY_LIST)
+    e = mk({})
+    assert d != e
+    assert d != 1
+
 def test_multimap_getitem():
     d = mk(CASES_KEY_LIST)
     assert d['issn'] == ['1351-5381']

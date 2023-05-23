@@ -182,14 +182,14 @@ CASES = {
     },
 }
 
-CASES_MVE_ENCODE = [(CASES[c]['MAP'], v, CASES[c][v])
-                    for c in CASES
-                    for v in set(CASES[c].keys()) - {'MAP' }]
+CASES_MVE_ENCODE = [(d['MAP'], v, d[v])
+                    for d in CASES.values()
+                    for v in set(d.keys()) - {'MAP'}]
 
 @pytest.mark.parametrize(('m', 'v', 'e'), CASES_MVE_ENCODE)
 def test_encode(m, v, e):
     if v in enc.encoder:
-        assert enc.encoder[v].encode(m) == e
+        assert enc.encoder[v].encode(m, None) == e
 
 CASES_MVE_DECODE = filter(lambda t: t[1] not in ('sfc', 'sh', 'v0', 'value'),
                           CASES_MVE_ENCODE)
@@ -201,7 +201,7 @@ def test_decode(m, v, e):
 
 def test_v3_encode_doi():
     m = VljuMap().add('doi', DOI('10.12345/67890'))
-    assert enc.v3.encode(m) == '[doi=10.12345,67890]'
+    assert enc.v3.encode(m, None) == '[doi=10.12345,67890]'
 
 def test_v3_decode_title_only():
     v = enc.v3.decode(VljuMap(), 'Title', TstEncVlju.factory)['title'][0]
@@ -242,10 +242,10 @@ def test_sfc_decode():
                               ['title', 'a', 'isbn', 'edition', 'date'])
 
 def test_json_encode():
-    assert enc.json.encode(CASES['A']['MAP']) == CASES['A']['json']
-    assert enc.json.encode(CASES['B']['MAP']) == CASES['B']['json']
-    assert enc.json.encode(CASES['C']['MAP']) == CASES['C']['json']
-    assert enc.json.encode(CASES['D']['MAP']) == CASES['D']['json']
+    assert enc.json.encode(CASES['A']['MAP'], None) == CASES['A']['json']
+    assert enc.json.encode(CASES['B']['MAP'], None) == CASES['B']['json']
+    assert enc.json.encode(CASES['C']['MAP'], None) == CASES['C']['json']
+    assert enc.json.encode(CASES['D']['MAP'], None) == CASES['D']['json']
 
 def test_json_decode():
     assert enc.json.decode(VljuMap(), CASES['D']['json2'],
@@ -256,7 +256,7 @@ def test_keyvalue_decode():
                                TstEncVlju.factory) == CASES['D']['MAP']
 
 def test_sh_encode():
-    assert enc.sh.encode(CASES['D']['MAP']) == CASES['D']['sh']
+    assert enc.sh.encode(CASES['D']['MAP'], None) == CASES['D']['sh']
 
 def test_can_encode():
     assert enc.v3.can_encode()

@@ -121,9 +121,15 @@ class SQLite:
 
         `kwargs` consists of column-value pairs.
 
-        Although this is not intended to handle untrusted arguments,
-        we take precautions against injection, since table and column
-        names must be part of the query string:
+        This is intended as a shorthand to be used with hard-coded keys,
+        for example:
+
+            db.store(users', user=u, password=p)
+
+        However, due to splatting, it is possible that this function could
+        be (mis)used with untrusted arguments. Therefore, we take precautions
+        against injection, since table and column names must be part of the
+        query string:
 
         - Verify that the supplied table and column names are actually
           existing table and column names in the database.
@@ -134,7 +140,7 @@ class SQLite:
         self.check_table_columns(table, kwargs.keys())
         p = BoundParameters(kwargs)
         q = (
-            f'INSERT INTO {quote_id(table)}'  # noqa: S608
+            f'INSERT INTO {quote_id(table)}'                # noqa: S608
             f' ({",".join(quote_id(c) for c in columns)})'
             f' VALUES ({",".join(f":{k}" for k in p.value)})')
         if on_conflict:
@@ -142,12 +148,11 @@ class SQLite:
         self.connection().execute(q, p.value)
         return self
 
-    def load(self,
-             table: str,
-             columns: Iterable[str] | None = None,
-             **kwargs) -> Cursor:
+    def load(self, table: str, *args: str, **kwargs) -> Cursor:
         """
         Read from a table.
+
+        `args` consists of column names to be returned.
 
         `kwargs` consists of column-value pairs that become `WHERE`
         conditions on the select.
@@ -162,13 +167,13 @@ class SQLite:
         - Use generated parameter names.
         """
         check_columns = set(kwargs.keys())
-        if columns is None:
-            cols = '*'
+        if args:
+            check_columns |= set(args)
+            cols = ','.join(quote_id(c) for c in args)
         else:
-            check_columns |= set(columns)
-            cols = ','.join(quote_id(c) for c in columns)
+            cols = '*'
         self.check_table_columns(table, check_columns)
-        q = f'SELECT {cols} FROM {quote_id(table)}'  # noqa: S608
+        q = f'SELECT {cols} FROM {quote_id(table)}'     # noqa: S608
         if not kwargs:
             return self.connection().execute(q)
         p = BoundParameters(kwargs)
@@ -215,7 +220,7 @@ class BoundParameters:
     """Sanitization of bound parameters."""
 
     column: dict[str, str]  # Map from parameter name to quoted column name.
-    value: dict[str, Any]  # Map from parameter name to value.
+    value: dict[str, Any]   # Map from parameter name to value.
 
     def __init__(self, column_value: dict[str, Any]) -> None:
         self.column = {}

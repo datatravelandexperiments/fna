@@ -10,7 +10,7 @@ from vlju.types.all import VLJU_TYPES, Vlju
 from vlju.types.site import site_class
 from vljum import VljuM
 from vljumap import enc
-from vljumap.factory import MappedFactory, default_factory
+from vljumap.factory import LooseMappedFactory, MappedFactory, default_factory
 
 V = Vlju
 
@@ -18,13 +18,16 @@ class M(VljuM):
     """Configured subclass of VljuM."""
 
     raw_factory = default_factory
-    typed_factory = MappedFactory(VLJU_TYPES)
+    strict_factory = MappedFactory(VLJU_TYPES)
+    loose_factory = LooseMappedFactory(VLJU_TYPES)
     default_registry = {
         'factory':
             Registry().update({
                 'raw': raw_factory,
-                'typed': typed_factory,
-            }).set_default('typed'),
+                'typed': loose_factory,
+                'loose': loose_factory,
+                'strict': strict_factory,
+            }).set_default('loose'),
         'encoder':
             Registry().update(enc.encoder).set_default('v3'),
         'decoder':
@@ -39,12 +42,14 @@ class M(VljuM):
     @classmethod
     def configure_sites(cls, site: Mapping[str, Mapping[str, Any]]) -> None:
         for k, s in site.items():
-            cls.typed_factory.setitem(k, site_class(**s))
+            scls = site_class(**s)
+            cls.strict_factory.setitem(k, scls)
+            cls.loose_factory.setitem(k, scls)
 
     @classmethod
     def exports(cls) -> dict[str, Any]:
         x = EXPORTS.copy()
-        for k, v in cls.typed_factory.kmap.items():
+        for k, v in cls.strict_factory.kmap.items():
             x[k] = v
             x[v.__name__] = v
         return x

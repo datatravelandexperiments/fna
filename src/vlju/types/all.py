@@ -11,6 +11,7 @@ from vlju.types.ean.issn import ISSN
 from vlju.types.file import File
 from vlju.types.info import Info
 from vlju.types.lccn import LCCN
+from vlju.types.timestamp import Timestamp
 from vlju.types.uri import URI
 from vlju.types.url import URL
 from vlju.types.urn import URN
@@ -25,6 +26,7 @@ VLJU_TYPES: dict[str, type[Vlju]] = {
     'ismn':     ISMN,
     'issn':     ISSN,
     'lccn':     LCCN,
+    't':        Timestamp,
     'uri':      URI,
     'url':      URL,
     'urn':      URN,

@@ -98,6 +98,15 @@ Delete all attributes for one or more _key_s.
 It is not an error for keys not to be present.
 The complement of `delete` is `extract`.
 
+#### compare
+
+`compare`
+
+Print the original file name from a `file` command
+and current encoded file name, if they differ.
+Encodes using the current active encoder.
+This can be used as a ‘dry run’ for `rename`.
+
 #### dir
 
 `dir` _directory_
@@ -372,15 +381,19 @@ to comply with Windows file name limitations.
 ## Factories
 
 A ‘factory’ defines how a text attribute value is interpreted.
-There are two factories:
+There are three factories:
 
 - `raw`:
   The value text is retained as-is.
-- `typed`:
+- `typed` or `loose`:
   The value text is potentially interpreted according to the associated key.
   [In some cases](keys.md), this provides additional semantic features
   like normalization or URL representation, but this can come with
-  restrictions on the accepted text.
+  restrictions on the accepted text. If the supplied value is not suitable
+  for the associated type, it is retained as-is, untyped.
+  This is the default.
+- `strict`:
+  Typed, but it is an error if the supplied value is not suitable.
 
 ## Modes
 

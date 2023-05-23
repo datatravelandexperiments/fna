@@ -12,6 +12,7 @@ from typing import Any, Self, TextIO
 
 import util.io
 
+from util.error import Error
 from util.registry import Registry
 from vlju.types.all import URI, URL, File, Vlju
 from vljumap import VljuFactory, VljuMap, enc
@@ -32,8 +33,9 @@ class VljuM(VljuMap):
         self.encoder = copy.copy(self.default_registry['encoder'])
         self.decoder = copy.copy(self.default_registry['decoder'])
         self.mode = copy.copy(self.default_registry['mode'])
-        self.original_path: Path
-        self.modified_path: Path
+        self._original_path: Path
+        self._current_dir: Path
+        self._current_suffix: str
         self._set_path(Path())
         if i is not None:
             if isinstance(i, VljuMap):
@@ -84,7 +86,7 @@ class VljuM(VljuMap):
              decoder: EncoderArg = None,
              factory: FactoryArg = None) -> Self:
         self._set_path(s)
-        self.decoder.get(decoder).decode(self, self.original_path.stem,
+        self.decoder.get(decoder).decode(self, self._original_path.stem,
                                          self.factory.get(factory))
         return self
 
@@ -111,13 +113,16 @@ class VljuM(VljuMap):
         return self
 
     def rename(self, encoder: EncoderArg = None, mode: ModeArg = None) -> Self:
-        self.modified_path = self.filename(encoder, self.mode.get(mode))
-        if self.modified_path.exists():
-            if self.modified_path.samefile(self.original_path):
+        if self._original_path == Path():
+            message = 'no file to rename'
+            raise Error(message)
+        modified_path = self.filename(encoder, self.mode.get(mode))
+        if modified_path.exists():
+            if modified_path.samefile(self._original_path):
                 return self
-            raise FileExistsError(self.modified_path)
-        self.original_path.rename(self.modified_path)
-        self.original_path = self.modified_path
+            raise FileExistsError(modified_path)
+        self._original_path.rename(modified_path)
+        self._set_path(modified_path)
         return self
 
     def reset(self,
@@ -132,13 +137,13 @@ class VljuM(VljuMap):
                                lambda v: v.get(self.mode.get(mode)))
 
     def with_dir(self, s: str | Path) -> Self:
-        self.modified_path = Path(s) / self.modified_path.name
+        self._current_dir = Path(s)
         return self
 
     def with_suffix(self, suffix: str) -> Self:
         if not suffix.startswith('.'):
             suffix = '.' + suffix
-        self.modified_path = self.modified_path.with_suffix(suffix)
+        self._current_suffix = suffix
         return self
 
     def write(self,
@@ -156,8 +161,6 @@ class VljuM(VljuMap):
     # String reductions.
 
     def __str__(self) -> str:
-        if self.modified_path == Path():
-            return self.encode()
         return str(self.filename())
 
     def lv(self) -> str:
@@ -184,11 +187,17 @@ class VljuM(VljuMap):
 
     # Filename reduction.
 
+    def original(self) -> Path:
+        return self._original_path
+
     def filename(self,
                  encoder: EncoderArg = None,
                  mode: ModeArg = None) -> Path:
-        return self.modified_path.with_stem(
-            self.encode(encoder, self.mode.get(mode)))
+        e = self.encode(encoder, self.mode.get(mode))
+        if not e:
+            message = 'no file name'
+            raise Error(message)
+        return (self._current_dir / e).with_suffix(self._current_suffix)
 
     # Vlju reduction.
 
@@ -207,11 +216,12 @@ class VljuM(VljuMap):
     def _set_path(self, s: str | Path) -> Self:
         if isinstance(s, str):
             s = Path(s)
-        self.original_path = s
-        self.modified_path = s
+        self._original_path = s
+        self._current_dir = s.parent
+        self._current_suffix = s.suffix
         return self
 
-    def _url(self, cls: type[Vlju]) -> Self:
+    def _url(self, cls: type) -> Self:
         # Try hard to get URIs/URLs from the current map.
         out = type(self)()
         strings: list[tuple[str, str]] = []
@@ -246,8 +256,7 @@ class VljuM(VljuMap):
         return r
 
     def __repr__(self) -> str:
-        return (f'{type(self).__name__}'
-                f'({dict(self.data)!r},path={self.modified_path})')
+        return f'{type(self).__name__}({dict(self.data)!r})'
 
     @classmethod
     def configure_options(cls, options: Mapping[str, Any]) -> None:

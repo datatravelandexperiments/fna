@@ -9,6 +9,7 @@ from pathlib import Path
 
 import pytest
 
+from util.error import Error
 from util.registry import Registry
 from vlju.testutil import CastParams
 from vlju.types.all import ISBN, URL, File
@@ -32,9 +33,9 @@ def test_configure_options():
 def test_configure_sites():
 
     class N(M):
-        typed_factory = deepcopy(M.typed_factory)
+        strict_factory = deepcopy(M.strict_factory)
         default_registry = deepcopy(M.default_registry)
-        default_registry['factory'] = Registry().set_default(typed_factory)
+        default_registry['factory'] = Registry().set_default(strict_factory)
 
     N.configure_sites({
         'test': {
@@ -44,7 +45,7 @@ def test_configure_sites():
             'path': 'a/{x}/b',
         },
     })
-    pprint.pp(M.typed_factory.kmap)
+    pprint.pp(M.strict_factory.kmap)
     m = N().decode('[test=123]').z()
     assert m.url() == 'http://example.com/a/123/b'
 
@@ -60,8 +61,8 @@ def test_m_construct_file():
 def test_m_construct_path():
     p = Path('/blah/Title [isbn=1234567890].pdf')
     m = M(p)
-    assert m.encode() == ''  # noqa: compare-to-empty-string
-    assert m.original_path == p
+    assert m.encode() == ''
+    assert m.original() == p
 
 def test_m_construct_str():
     m = M('Title [isbn=1234567890]')
@@ -73,7 +74,7 @@ def test_m_construct_cast_params():
 
 def test_m_construct_cast_params_with_path():
     p = Path('/blah/Title [isbn=1234567890].pdf')
-    m = M(CastParams(p, {'a': V('42')}))
+    m = M(CastParams(str(p), {'a': V('42')}))
     assert str(m.filename()) == '/blah/[a=42].pdf'
 
 def test_m_construct_other():
@@ -92,7 +93,7 @@ def test_m_add_vlju():
 def test_m_add_none():
     m = M().add('key')
     assert m.encode() == '[key]'
-    assert str(m['key'][0]) == ''  # noqa: compare-to-empty-string
+    assert str(m['key'][0]) == ''
 
 def test_m_add_explicit_factory():
     m = M().add('isbn', '1234567897', tst_vlju_factory)
@@ -111,7 +112,7 @@ def test_m_decode():
 
 def test_m_dir():
     m = M().file('/blah/f.pdf').with_dir('/etc')
-    assert m.modified_path == Path('/etc/f.pdf')
+    assert m.filename() == Path('/etc/f.pdf')
 
 def test_m_extract():
     m = M().decode('[key=value; x=1; isbn=1234567890]').extract('key', 'isbn')
@@ -122,14 +123,19 @@ def test_m_extract():
 def test_m_file():
     p = '/blah/Title [isbn=1234567890].pdf'
     m = M().file(p)
-    assert m.original_path == Path(p)
+    assert m.original() == Path(p)
     assert str(m) == '/blah/Title [isbn=9781234567897].pdf'
 
 def test_m_filename():
     p = '/blah/[isbn=1234567890].pdf'
     m = M().file(p).add('title', 'Title')
-    assert m.original_path == Path(p)
+    assert m.original() == Path(p)
     assert m.filename() == Path('/blah/Title [isbn=9781234567897].pdf')
+
+def test_m_filename_empty():
+    m = M()
+    with pytest.raises(Error):
+        _ = m.filename()
 
 def test_m_first_key():
     m = M().decode('[y=1; y=2; x=a]')
@@ -171,7 +177,7 @@ def test_m_order_all():
 
 def test_m_q():
     m = M().add('key', 'one')
-    assert m.q() == ''  # noqa: compare-to-empty-string
+    assert m.q() == ''
 
 def test_m_read():
     f = StringIO('[key=value; isbn=1234567890]')
@@ -182,7 +188,7 @@ def test_m_rename(monkeypatch):
     p = Path('/blah/[isbn=1234567890].jpeg')
     q = Path('/home/sfc/Title [isbn=9781234567897].jpg')
     m = M().file(p)
-    assert m.original_path == p
+    assert m.original() == p
 
     def mk_mock_rename():
         d = {}
@@ -198,9 +204,14 @@ def test_m_rename(monkeypatch):
     monkeypatch.setattr(Path, 'rename', mock_rename)
 
     m.with_dir('/home/sfc').with_suffix('jpg').add('title', 'Title').rename()
-    assert m.original_path == q
+    assert m.original() == q
     assert result['src'] == p
     assert result['dst'] == q
+
+def test_m_rename_no_original():
+    m = M()
+    with pytest.raises(Error, match='no file'):
+        m.rename()
 
 def test_m_rename_exists(monkeypatch):
     m = M().file('/etc/passwd')
@@ -245,13 +256,13 @@ def test_m_str():
 
 def test_m_suffix():
     m = M().file('/blah/f.pdf').with_suffix('jpg')
-    assert m.original_path == Path('/blah/f.pdf')
-    assert m.modified_path == Path('/blah/f.jpg')
+    assert m.original() == Path('/blah/f.pdf')
+    assert m.filename() == Path('/blah/f.jpg')
 
 def test_m_suffix_dot():
     m = M().file('/blah/f.pdf').with_suffix('.jpg')
-    assert m.original_path == Path('/blah/f.pdf')
-    assert m.modified_path == Path('/blah/f.jpg')
+    assert m.original() == Path('/blah/f.pdf')
+    assert m.filename() == Path('/blah/f.jpg')
 
 def test_m_uri():
     m = M().decode('[a=1; doi=10.1234,56-78; v=foo/bar]')
@@ -270,14 +281,14 @@ def test_m_write():
 def test_m_to_file():
     p = '/blah/[isbn=1234567890].pdf'
     m = M().file(p).add('title', 'Title')
-    assert m.original_path == Path(p)
+    assert m.original() == Path(p)
     f = File(m)
     assert str(f) == '/blah/Title [isbn=9781234567897].pdf'
 
 def test_m_to_url():
     p = '/blah/[isbn=1234567890].pdf'
     m = M().file(p).add('title', 'Title')
-    assert m.original_path == Path(p)
+    assert m.original() == Path(p)
     f = URL(m)
     assert str(f) == 'file:///blah/Title%20%5Bisbn=9781234567897%5D.pdf'
 

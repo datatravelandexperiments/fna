@@ -91,6 +91,8 @@ This file can define keys and classes associated with web sites,
 mapping from a compact ID to a URL. (The other direction does not yet exist.)
 The distribution file `config/config.toml` contains some examples.
 
+See [doc/configuration.md](doc/configuration.md) for more information.
+
 ## Implementation
 
 The current public home for `fna` is
@@ -100,6 +102,13 @@ The current public home for `fna` is
 standard library `shlex` module provided input file tokenization ‘for free’
 (sometimes free is expensive). It was originally written in Python 2 circa
 2010, and substantially revised in 2023.
+
+`fna` aims for 100% unit test coverage (outside of `extra/`)
+and full type annotation (outside of unit tests).
+
+### src/util
+
+Code that does not depend on `vlju`, and could be useful in unrelated projects.
 
 ### src/vlju
 
@@ -132,7 +141,8 @@ The command line tool `fna`.
 
 ### TODO
 
-- Better documentation.
-- Logging options.
 - Better error handling. Too much still just raises exceptions.
 - Investigate constructing SiteBase values from URL strings.
+  Config would probably contain REs with named groups.
+- Document operation with `-[EFx]`.
+- Logging options?

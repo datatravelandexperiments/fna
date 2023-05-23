@@ -67,6 +67,22 @@ class Runner:
         self.m.add(key, val)
         self.report = True
 
+    def command_compare(self, _: str) -> None:
+        """
+        Print the original and current encoded file name if they differ.
+
+        Encodes using the current active encoder.
+        This can be used as a ‘dry run’ for `rename`.
+
+        Synopsis: compare
+        """
+        original = self.m.original()
+        current = self.m.filename()
+        if current != original:
+            print(original)
+            print(current)
+        self.report = False
+
     def command_decode(self, cmd: str) -> None:
         """
         Decode a string.

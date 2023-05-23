@@ -43,6 +43,18 @@ def test_runner_command_add():
     r.runs('add y 7 set y 8 add y 9 set x 7')
     assert r.m.encode() == '[z=Z; z=Y; y=8; y=9; x=7]'
 
+def test_runner_command_compare_different(capsys):
+    r = mk(args=['sfc', 'file', D1SFC, 'order', 'a,isbn,edition', 'quiet'])
+    r.runs('v3 compare')
+    assert capsys.readouterr().out == f'{D1SFC}\n{D1V3}\n'
+    assert not r.report
+
+def test_runner_command_compare_same(capsys):
+    r = mk(args=['file', D1V3, 'quiet'])
+    r.runs('compare')
+    assert capsys.readouterr().out == ''
+    assert not r.report
+
 def test_runner_command_decode():
     r = mk()
     r.run(['decode', MK_V3])
