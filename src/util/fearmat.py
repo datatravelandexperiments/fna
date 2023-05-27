@@ -4,6 +4,8 @@
 from collections.abc import Mapping
 from typing import Any
 
+import operator
+
 import util.error
 
 ALLOWED_BUILTINS = (
@@ -20,6 +22,7 @@ ALLOWED_BUILTINS = (
     'hex',
     'int',
     'len',
+    'map',
     'max',
     'min',
     'oct',
@@ -29,8 +32,18 @@ ALLOWED_BUILTINS = (
     'sorted',
     'str',
 )
+ALLOWED_OPERATORS = (
+    'add',
+    'sub',
+)
 
-BUILTINS = {k: globals()['__builtins__'][k] for k in ALLOWED_BUILTINS}
+BUILTINS = {
+    k: globals()['__builtins__'][k]
+    for k in ALLOWED_BUILTINS
+} | {
+    k: getattr(operator, k)
+    for k in ALLOWED_OPERATORS
+}
 
 def fearmat(template: str,
             values: Mapping[str, Any],

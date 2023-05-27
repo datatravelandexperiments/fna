@@ -5,43 +5,68 @@ encoder = 'v3'
 [site.dan]
 name = 'Danbooru'
 host = 'danbooru.donmai.us'
-path = 'posts/{x}'
+path = 'posts/{id}'
+url = ['https?://danbooru\.donmai\.us/posts/(\d+)']
 
 [site.gel]
 name = 'Gelbooru'
 host = 'gelbooru.com'
 path = 'index.php'
-query = 'page=post&s=view&id={x}'
+query = 'page=post&s=view&id={id}'
+url = ['https?://gelbooru\.com/index.php\?.*\bid=(\d+)\b.*']
 
 [site.kona]
 name = 'Konachan'
 host = 'konachan.com'
-path = 'post/show/{x}'
+path = 'post/show/{id}'
+url = ['https?://konachan\.com/post/show/(\d+)']
 
 [site.pixiv]
 name = 'Pixiv'
 host = 'www.pixiv.net'
-path = 'en/artworks/{x[:x.find("_")]}'
-fragment = '{"" if (n:=int(x[x.find("p")+1:]))==0 else n+1}'
-normalize = '{x if "_p" in x else x + "_p0"}'
+path = 'en/artworks/{id[:id.find("_")]}'
+fragment = '{"" if (n:=int(id[id.find("p")+1:]))==0 else n+1}'
+normalize = [
+    '{id if "_p" in id',
+    ' else ("_p".join(map(str,map(sub,map(int,id.split("#")),(0,1)))))',
+    '  if "#" in id',
+    ' else id + "_p0"}'
+]
+url = [
+    ['https?://(?:www\.)?pixiv\.net/en/artworks/(\d+)(\#\d+)?', '\1\2'],
+    'https?://.*\.pximg\.net/img-[a-z]+/.*/(\d+_p\d+).*'
+]
 
 [site.sank]
 name = 'Sankaku'
 host = 'chan.sankakucomplex.com'
-path = 'post/show/{x}'
+path = 'post/show/{id}'
+url = ['https?://chan\.sankakucomplex\.com/post/show/(\d+)']
 
 [site.tweet]
 name = 'Twitter'
 host = 'twitter.com'
-path = '{"/status/".join(x.split(",")[:2]) if "," in x else f"i/web/status/{x}"}'
+path = [
+    '{"/status/".join(id.split(",")[:2]) if "," in id',
+    ' else f"i/web/status/{id}"}'
+]
+url = [
+    'https?://twitter.com/i/web/status/(\d+)',
+    ['https?://twitter.com/([^/]*)/status/(\d+)', '\1,\2']
+]
 
 [site.yandere]
 name = 'Yandere'
 host = 'yande.re'
-path = 'post/show/{x}'
+path = 'post/show/{id}'
+url = ['https?://yande\.re/post/show/(\d+)']
 
 [site.yt]
 name = 'YouTube'
 host = 'www.youtube.com'
 path = 'watch'
-query = 'v={x}'
+query = 'v={id}'
+url = [
+    'https?://(?:www\.)?youtube\.com/watch?.*v=(\w+).*',
+    'https?://youtu.be/(\w+)',
+]
