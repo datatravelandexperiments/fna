@@ -34,13 +34,13 @@ corrected.
 ## Installation
 
 The easiest (?) way to install `fna` is from
-[PyPi](https://pypi.org/project/file-name-attributes/) using `pip`.
+[PyPi](https://pypi.org/project/fnattr/) using `pip`.
 Depending on your system, one of the following may work:
 
-- `pip install file-name-attributes`
-- `pip install --user file-name-attributes`
-- `pipx install file-name-attributes`
-- `python -m pip install file-name-attributes`
+- `pip install fnattr`
+- `pip install --user fnattr`
+- `pipx install fnattr`
+- `python -m pip install fnattr`
 
 ## Usage
 

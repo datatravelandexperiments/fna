@@ -3,8 +3,8 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "file-name-attributes"
-version = "0.2.5"
+name = "fnattr"
+version = "0.2.6"
 description = "Manage key/value metadata in file names."
 license.text = "MIT License"
 readme = "README.md"
@@ -22,8 +22,8 @@ classifiers = [
 ]
 
 [project.scripts]
-fna = "fna:main"
-fnaffle = "extra.fnaffle:main"
+fna = "fnattr.fna:main"
+fnaffle = "fnattr.extra.fnaffle:main"
 
 [project.urls]
 repository = "https://codeberg.org/datatravelandexperiments/fna"
@@ -152,7 +152,9 @@ indent_dictionary_value = true
 join_multiple_lines = false
 spaces_around_default_or_named_assign = false
 spaces_around_subscript_colon = true
-spaces_before_comment = [17, 21, 25, 29, 33, 37, 41, 45, 49, 53, 57, 61, 65, 69]
+spaces_before_comment = [
+    13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53, 57, 61, 65, 69
+]
 split_all_top_level_comma_separated_values = true
 split_before_bitwise_operator = true
 split_before_arithmetic_operator = true

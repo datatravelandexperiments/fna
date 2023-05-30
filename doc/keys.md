@@ -30,9 +30,9 @@ Character-crossover.
 
 [Danbooru](https://danbooru.donmai.us/) item.
 
-- Accepted values: number
-- Representation: number
-- Long form: `https://danbooru.donmai.us/posts/`_number_
+- Accepted values: numeric _id_, or long form URL.
+- Representation: _id_
+- Long form: `https://danbooru.donmai.us/posts/`_id_
 
 This is not defined within `fna`,
 but is present in the example configuration file.
@@ -49,7 +49,13 @@ This might get a class and parsing in the future.
 
 Document Object Identifier.
 
-- Accepted values: TBD
+- Accepted values: [_intro_]_prefix_(`/`|`,`)_suffix_
+  where _intro_ is one of:
+  - empty
+  - `doi:`(`/`)*
+  - [`info:`]\(`doi`|`hdl`)`/`
+  - `https://`[`dx.`]`doi.org/`
+  - `https://hdl.handle.net/`
 - Representation: _prefix_`,`_suffix_
 - Long form: (`doi:`_prefix_`/`_suffixᵖ_) | _uri_
 - Class: `DOI`
@@ -80,9 +86,9 @@ Local file path.
 
 [Gelbooru](https://gelbooru.com/) item.
 
-- Accepted values: number
-- Representation: number
-- Long form: `https://gelbooru.com/index.php?page=post&s=view&id=`_number_
+- Accepted values: numeric _id_, or long form URL.
+- Representation: _id_
+- Long form: `https://gelbooru.com/index.php?page=post&s=view&id=`_id_
 
 This is not defined within `fna`,
 but is present in the example configuration file.
@@ -156,7 +162,7 @@ Page(s) in a paginated work.
 
 [Pixiv](https://www.pixiv.net/) item.
 
-- Accepted values: _id_ or _id_`_p`_item_
+- Accepted values: _id_ or _id_`_p`_item_ or long form URL
 - Representation: _id_`_p`_item_
 - Long form: `https://www.pixiv.net/en/artworks/`_id_[`#`_item_]
 
@@ -177,20 +183,20 @@ Timestamp (within a work; for points in time use `date`).
 
 - Accepted values: Handles many unambiguous representations.
   For example:
-    - 1:23:45:57.39
-    - 123days 5′10.3″
-    - 99
-    - 99:59
-    - 99:59.99
-    - 99:59:59.999
-    - 99:23:59:59.999
-    - 123 Hours 5:10.3
-    - 123 hours 10.25
-    - 123 hours 99s1024
-    - 1d 23 59 59
-    - 1 23H 59 59
-    - 1d 23 59 59s
-    - 1 day 14 µs
+    - `1:23:45:57.39`
+    - `123days 5′10.3″`
+    - `99`
+    - `99:59`
+    - `99:59.99`
+    - `99:59:59.999`
+    - `99:23:59:59.999`
+    - `123 Hours 5:10.3`
+    - `123 hours 10.25`
+    - `123 hours 99s1024`
+    - `1d 23 59 59`
+    - `1 23H 59 59`
+    - `1d 23 59 59s`
+    - `1 day 14 µs`
 - Representation: _days_`:`_hh_`:`_mm_`:`_ss_`.`_fraction_,
   but the `.`_fraction_ and leading fields or digits are omitted if zero.
 
@@ -214,7 +220,8 @@ Named for the ID3v2 tag.
 
 [Twitter](https://twitter.com/) post.
 
-- Accepted values: [_account_`,`]_post_
+- Accepted values: [_account_`,`]_post_ or long form URL
+- Representation: [_account_`,`]_post_
 - Long form: URL
 
 This is not defined within `fna`,
@@ -250,7 +257,8 @@ Volume (of a multi-volume work).
 
 YouTube video.
 
-- Accepted values: _id_
+- Accepted values: _id_ or long form URL or `youtu.be/`_id_ URL
+- Representation: _id_
 - Long form: `https://www.youtube.com/watch?v=`_id_
 
 This is not defined within `fna`,
