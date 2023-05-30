@@ -142,7 +142,5 @@ The command line tool `fna`.
 ### TODO
 
 - Better error handling. Too much still just raises exceptions.
-- Investigate constructing SiteBase values from URL strings.
-  Config would probably contain REs with named groups.
 - Document operation with `-[EFx]`.
 - Logging options?
