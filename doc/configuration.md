@@ -5,9 +5,9 @@ Configuration files are in [TOML](https://toml.io/) form.
 ## Default configuration files
 
 Unless otherwise directed by a command line option,
-`fna` tries to read `vlju/config.toml` or `fna/config.toml`
+`fna` tries to read `fnattr/vlju.toml` and/or `fnattr/fna.toml`
 under XDG locations (e.g. `$XDG_CONFIG_HOME/` or `$HOME/.config/`).
-The former — the `vlju` subdirectory — is shared by all tools
+The former — `vlju.toml` — is shared by all tools
 using the Vlju library; the latter applies only to the `fna` command.
 
 ## Sections

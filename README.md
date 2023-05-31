@@ -82,14 +82,14 @@ $ fna file '/tmp/My Book.pdf' add isbn 1234567890 json encode
 ## Configuration
 
 Unless otherwise directed by a command line option,
-`fna` tries to read `vlju/config.toml` or `fna/config.toml`
+`fna` tries to read `fnattr/vlju.toml` or `fnattr/fna.toml`
 from XDG locations (e.g. `$HOME/.config/`).
 The former is shared by all tools using the Vlju
 library, while the latter applies only to the `fna` command.
 
 This file can define keys and classes associated with web sites,
-mapping from a compact ID to a URL. (The other direction does not yet exist.)
-The distribution file `config/config.toml` contains some examples.
+mapping between a compact ID to a URL.
+The distribution file `config/vlju.toml` contains some examples.
 
 See [doc/configuration.md](doc/configuration.md) for more information.
 

@@ -102,8 +102,10 @@ def read_cmd_configs(cmd: str, args: Iterable[Path | str]) -> dict:
     if args:
         return read_configs(args)
     return read_xdg_configs([
-        Path('vlju/config.toml'),
-        Path(f'{cmd}/config.toml'),
+        Path('vlju.toml'),
+        Path('fnattr/vlju.toml'),
+        Path(f'{cmd}.toml'),
+        Path(f'fnattr/{cmd}.toml'),
     ])
 
 def nested_update(dst: dict, src: dict) -> dict:

@@ -130,7 +130,7 @@ def test_read_configs_bad_toml(monkeypatch, capsys):
     monkeypatch.setattr(Path, 'open', lambda *_: f)
     d = config.read_cmd_configs('test', [])
     assert d == {}
-    assert 'config.toml:' in capsys.readouterr().out
+    assert 'vlju.toml:' in capsys.readouterr().out
 
 def test_read_configs_args_bad_toml(monkeypatch, capsys):
     f = io.BytesIO(b'wtf!')

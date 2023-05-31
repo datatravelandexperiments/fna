@@ -13,7 +13,7 @@ from fnattr.util.pytestutil import im2p
 from fnattr.vlju.types.site import site_class
 from fnattr.vlju.types.url import URL
 
-config = read_toml_config(pathlib.Path('config/config.toml'))
+config = read_toml_config(pathlib.Path('config/vlju.toml'))
 assert config
 for _, v in config['site'].items():
     globals()[v['name']] = site_class(**v)
