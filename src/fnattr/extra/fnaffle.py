@@ -2,6 +2,7 @@
 """Move files to directories based on matching attributes."""
 
 import argparse
+import logging
 import sys
 
 from collections.abc import Iterable
@@ -122,11 +123,12 @@ def main(argv: list[str] | None = None) -> int:
         action='append',
         help='Renaming map file.')
     parser.add_argument(
-        '--verbose',
-        '-v',
-        default=False,
-        action='store_true',
-        help='Report renaming.')
+        '--log-level',
+        '-L',
+        metavar='LEVEL',
+        type=str,
+        choices=[c for c in logging.getLevelNamesMapping() if c != 'NOTSET'],
+        default='INFO')
     parser.add_argument(
         'file',
         metavar='FILENAME',
@@ -135,6 +137,8 @@ def main(argv: list[str] | None = None) -> int:
         default=[],
         help='File name(s).')
     args = parser.parse_args(argv[1 :])
+    logging.basicConfig(level=getattr(logging, args.log_level.upper()),
+                        format=f'{cmd}: %(levelname)s: %(message)s')
 
     config = read_cmd_configs(cmd, args.config)
     options = config.get('option', {})
@@ -147,7 +151,7 @@ def main(argv: list[str] | None = None) -> int:
         if not args.map:
             args.map = find_map_files(cmd)
         if not args.map:
-            print(f'{cmd}: no map file.')
+            logging.error('%s: no map file', cmd)
             return 1
         maps = read_map_files(args.map)
         for file in args.file:
@@ -156,20 +160,20 @@ def main(argv: list[str] | None = None) -> int:
                 if not dst.exists():
                     if not args.dryrun:
                         dst.mkdir(parents=True)
-                    if args.dryrun or args.verbose:
-                        print(f'{dst}: created')
+                    logging.info('%s: created', dst)
                 if not args.dryrun:
                     try:
                         m.with_dir(dst).rename()
-                    except FileExistsError as e:
-                        print(f'{cmd}: file exists: {e}')
+                    except FileExistsError:
+                        logging.error('file exists: %s', file)
                 if args.dryrun or args.verbose:
                     print(f'{dst}: {file}')
             elif args.verbose:
                 print(f'no match for {file}')
     except Exception as e:
-        print(f'{cmd}: Unhandled exception: {type(e).__name__}{e.args}')
-        raise
+        logging.error('Unhandled exception: %s%s', type(e).__name__, e.args)
+        if logging.getLogger().getEffectiveLevel() < logging.INFO:
+            raise
     return 0
 
 if __name__ == '__main__':

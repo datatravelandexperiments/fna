@@ -113,6 +113,7 @@ ignore = [
     "PLR2004",  # magic-value-comparison: Be direct.
     "S314", 	# suspicious-xml-element-tree-usage: defusedxml is not builtin.
     "T20",      # flake8-print: I like having output.
+    "TRY400",   # error-instead-of-exception: Don't dump traces on end users.
 ]
 
 [tool.ruff.flake8-annotations]

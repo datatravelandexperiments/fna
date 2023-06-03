@@ -7,7 +7,7 @@ from typing import Any
 
 from fnattr.util.registry import Registry
 from fnattr.vlju.types.all import VLJU_TYPES, Vlju
-from fnattr.vlju.types.site import site_class
+from fnattr.vlju.types.site import SiteBase, site_class
 from fnattr.vljum import VljuM
 from fnattr.vljumap import enc
 from fnattr.vljumap.factory import (
@@ -42,6 +42,7 @@ class M(VljuM):
                 for k in ('short', 'long', 'repr')
             }).set_default('short'),
     }
+    site_classes: dict[str, type[SiteBase]] = {}
 
     @classmethod
     def configure_sites(cls, site: Mapping[str, Mapping[str, Any]]) -> None:
@@ -49,6 +50,14 @@ class M(VljuM):
             scls = site_class(**s)
             cls.strict_factory.setitem(k, scls)
             cls.loose_factory.setitem(k, scls)
+            cls.site_classes[k] = scls
+
+    @classmethod
+    def from_site_url(cls, url: str) -> tuple[str | None, SiteBase | None]:
+        for k, scls in cls.site_classes.items():
+            if (v := scls.match_url(url)):
+                return k, scls(v)
+        return None, None
 
     @classmethod
     def exports(cls) -> dict[str, Any]:
@@ -82,15 +91,15 @@ def _make_free_function(cls: type, name: str) -> Callable:
     return f
 
 EXPORTS: dict[str, Any] = {
-                                                            # Aliases
+    # Aliases
     'Path': Path,
     'V': Vlju,
 } | {
-                                                            # Module definitions
+    # Module definitions
     k: globals()[k]
     for k in ('M', )
 } | {
-                                                            # M() methods
+    # M() methods
     k: _make_free_function(M, k)
     for k in ('add', 'decode', 'file', 'read', 'reset')
 }

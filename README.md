@@ -143,4 +143,3 @@ The command line tool `fna`.
 
 - Better error handling. Too much still just raises exceptions.
 - Document operation with `-[EFx]`.
-- Logging options?

@@ -2,6 +2,7 @@
 """Configuration-file related utilities."""
 
 import contextlib
+import logging
 import os
 import tomllib
 
@@ -81,7 +82,7 @@ def read_toml_config(file: Path | str) -> dict | None:
         try:
             return tomllib.load(f)
         except tomllib.TOMLDecodeError as e:
-            print(f'{file}: {e}')
+            logging.error('%s: %s', file, str(e))
             return None
 
 def read_configs(args: Iterable[Path | str]) -> dict:

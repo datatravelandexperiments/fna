@@ -2,6 +2,7 @@
 """`fna` command."""
 
 import argparse
+import logging
 import pathlib
 import sys
 
@@ -42,6 +43,13 @@ def main(argv: list[str] | None = None) -> int:
         type=str,
         choices=fnattr.vljumap.enc.encoder.keys(),
         help='Default string encoder.')
+    parser.add_argument(
+        '--log-level',
+        '-L',
+        metavar='LEVEL',
+        type=str,
+        choices=[c for c in logging.getLevelNamesMapping() if c != 'NOTSET'],
+        default='INFO')
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument(
         '--dsl',
@@ -81,6 +89,9 @@ def main(argv: list[str] | None = None) -> int:
         help='Part of a subcommand, or an expression or statement.')
     args = parser.parse_args(argv[1 :])
 
+    logging.basicConfig(level=getattr(logging, args.log_level.upper()),
+                        format=f'{cmd}: %(levelname)s: %(message)s')
+
     config = fnattr.util.config.read_cmd_configs(cmd, args.config)
     options = config.get('option', {})
     if args.decoder:
@@ -107,10 +118,11 @@ def main(argv: list[str] | None = None) -> int:
                     with fnattr.util.io.open_input(i) as f:
                         fnattr.vljum.m.M.execute(f.read())
             case _:
-                print(f'{cmd}: Unknown mode: {args.mode}')
+                logging.error('Unknown mode: %s', args.mode)
     except Exception as e:
-        print(f'{cmd}: Unhandled exception: {type(e).__name__}{e.args}')
-        raise
+        logging.error('Unhandled exception: %s%s', type(e).__name__, e.args)
+        if logging.getLogger().getEffectiveLevel() < logging.INFO:
+            raise
     return 0
 
 if __name__ == '__main__':

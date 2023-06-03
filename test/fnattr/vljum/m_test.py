@@ -43,11 +43,21 @@ def test_configure_sites():
             'scheme': 'http',
             'host': 'example.com',
             'path': 'a/{x}/b',
+            'url': [[r'https?://example.com/a/(\d+)/b']],
         },
     })
     pprint.pp(M.strict_factory.kmap)
     m = N().decode('[test=123]').z()
     assert m.url() == 'http://example.com/a/123/b'
+
+    k, v = m.from_site_url('http://example.com/a/276/b')
+    assert k == 'test'
+    assert type(v).__name__ == 'SiteTest'
+    assert str(v) == '276'
+
+    k, v = m.from_site_url('http://www.example.com/q/276/p')
+    assert k is None
+    assert v is None
 
 def test_m_construct_vljumap():
     m = M().add('key', 'value').add('key', 'two')

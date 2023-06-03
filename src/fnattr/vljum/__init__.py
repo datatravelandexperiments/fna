@@ -35,20 +35,20 @@ class VljuM(VljuMap):
         self._original_path: Path
         self._current_dir: Path
         self._current_suffix: str
-        self._set_path(Path())
+        self.set_path(Path())
         if i is not None:
             if isinstance(i, VljuMap):
                 self.extend(i)
             elif isinstance(i, File):
                 self.file(i.filename())
             elif isinstance(i, Path):
-                self._set_path(i)
+                self.set_path(i)
             elif isinstance(i, str):
                 self.decode(i)
             elif hasattr(i, 'cast_params'):
                 s, d = i.cast_params(type(self))
                 if s:
-                    self._set_path(s)
+                    self.set_path(s)
                 for k, v in d.items():
                     self.add(k, v)
             else:
@@ -84,7 +84,7 @@ class VljuM(VljuMap):
              s: str | Path,
              decoder: EncoderArg = None,
              factory: FactoryArg = None) -> Self:
-        self._set_path(s)
+        self.set_path(s)
         self.decoder.get(decoder).decode(self,
                                          self._original_path.stem,
                                          self.factory.get(factory))
@@ -123,7 +123,7 @@ class VljuM(VljuMap):
                 return self
             raise FileExistsError(modified_path)
         self._original_path.rename(modified_path)
-        self._set_path(modified_path)
+        self.set_path(modified_path)
         return self
 
     def reset(self,
@@ -214,7 +214,7 @@ class VljuM(VljuMap):
 
     # Helpers.
 
-    def _set_path(self, s: str | Path) -> Self:
+    def set_path(self, s: str | Path) -> Self:
         if isinstance(s, str):
             s = Path(s)
         self._original_path = s
@@ -237,11 +237,11 @@ class VljuM(VljuMap):
                 strings.append((k, str(v)))
         if strings:
             scheme_slashes_re = re.compile(r'\w+://.+')
-            for k, v in strings:
-                if '/' not in v or scheme_slashes_re.fullmatch(v):
-                    t = v
+            for k, s in strings:
+                if '/' not in s or scheme_slashes_re.fullmatch(s):
+                    t = s
                 else:
-                    t = 'http://' + v
+                    t = 'http://' + s
                 u = cls(t)
                 if u and hasattr(u, 'authority') and u.authority():
                     out.add(k, u)

@@ -125,19 +125,19 @@ def test_read_configs_args(monkeypatch):
     d = config.read_cmd_configs('test', ['meh'])
     assert d == {'options': {'encoder': 'v0'}}
 
-def test_read_configs_bad_toml(monkeypatch, capsys):
+def test_read_configs_bad_toml(monkeypatch, caplog):
     f = io.BytesIO(b'wtf!')
     monkeypatch.setattr(Path, 'open', lambda *_: f)
     d = config.read_cmd_configs('test', [])
     assert d == {}
-    assert 'vlju.toml:' in capsys.readouterr().out
+    assert 'vlju.toml:' in caplog.record_tuples[0][2]
 
-def test_read_configs_args_bad_toml(monkeypatch, capsys):
+def test_read_configs_args_bad_toml(monkeypatch, caplog):
     f = io.BytesIO(b'wtf!')
     monkeypatch.setattr(Path, 'open', lambda *_: f)
     d = config.read_cmd_configs('test', ['meh'])
     assert d == {}
-    assert 'meh:' in capsys.readouterr().out
+    assert 'meh:' in caplog.record_tuples[0][2]
 
 def test_nested_update():
     d = {'a': {'b': 'B'}, 'z': 1}
