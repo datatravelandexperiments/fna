@@ -7,7 +7,7 @@ import logging
 import os
 import tomllib
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from pathlib import Path
 from typing import Any, Self
 
@@ -102,23 +102,35 @@ def read_xdg_configs(files: Iterable[Path]) -> dict:
             nested.nupdate(config, c)
     return config
 
-def read_cmd_configs(cmd: str, configs: Iterable[Path | str]) -> dict:
-    if configs:
-        return read_configs(configs)
-    return read_xdg_configs([
-        Path('vlju.toml'),
-        Path('fnattr/vlju.toml'),
-        Path(f'{cmd}.toml'),
-        Path(f'fnattr/{cmd}.toml'),
-    ])
+def read_cmd_configs(cmds: str | Iterable[str],
+                     config_files: Iterable[Path | str]) -> dict:
+    paths = []
+    names = ['vlju', cmds] if isinstance(cmds, str) else ['vlju', *cmds]
+    for i in names:
+        paths.append(Path(f'{i}.toml'))
+        paths.append(Path(f'fnattr/{i}.toml'))
+    config = read_xdg_configs(paths)
+    if config_files:
+        nested.nupdate(config, read_configs(config_files))
+    return config
 
 def merge_options(options: dict[str, Any] | None, args: argparse.Namespace,
-                  arg_options: dict[str, Any]) -> dict[str, Any]:
+                  **kwargs) -> dict[str, Any]:
     if options is None:
         options = {}
-    for k, d in arg_options.items():
+    for k, d in kwargs.items():
+        option = d.get('option', k) if isinstance(d, Mapping) else k
+        default = d.get('default') if isinstance(d, Mapping) else d
         if (a := getattr(args, k)) is not None:
-            nested.dset(options, d.get('option', k), a)
-        elif k not in options and (v := d.get('default')) is not None:
-            nested.dset(options, d.get('option', k), v)
+            nested.dset(options, option, a)
+        elif k not in options and default is not None:
+            nested.dset(options, option, default)
     return options
+
+def read_cmd_configs_and_merge_options(cmds: str | Iterable[str],
+                                       config_files: Iterable[Path | str],
+                                       args: argparse.Namespace,
+                                       **kwargs) -> tuple[dict, dict]:
+    config = read_cmd_configs(cmds, config_files)
+    options = merge_options(config.get('option'), args, **kwargs)
+    return config, options

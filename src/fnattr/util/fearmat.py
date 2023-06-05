@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT
 """Like format, but scary."""
 
+import builtins
 import operator
 
 from collections.abc import Mapping
@@ -38,7 +39,7 @@ ALLOWED_OPERATORS = (
 )
 
 BUILTINS = {
-    k: globals()['__builtins__'][k]
+    k: getattr(builtins, k)
     for k in ALLOWED_BUILTINS
 } | {
     k: getattr(operator, k)
@@ -54,5 +55,10 @@ def fearmat(template: str,
     template = 'f"""' + template + '"""'
     if builtins is None:
         builtins = BUILTINS
+    return str(evaluate(template, values, builtins))
+
+def evaluate(s: str,
+             values: Mapping[str, Any],
+             builtins: Mapping[str, Any]) -> Any:
     g = dict(values) | {'__builtins__': builtins}
-    return str(eval(template, g))   # noqa: PGH001, eval-used
+    return eval(s, g)   # noqa: PGH001, eval-used

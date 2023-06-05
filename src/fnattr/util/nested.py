@@ -14,6 +14,7 @@ from typing import Any, TypeVar
 
 T = TypeVar('T')
 D = TypeVar('D')
+MM = TypeVar('MM', bound=MutableMapping)
 
 def nget(d: Mapping[T, Any], keys: Iterable[T], default) -> Any:
     """Get from nested dictionaries."""
@@ -32,11 +33,11 @@ def ngetor(d: Mapping[T, Any],
            default: D | None = None) -> Any | D | None:
     return nget(d, keys, default)
 
-def nset(d: MutableMapping[T, Any], keys: Iterable[T], value: Any) -> None:
+def nset(d: MutableMapping, keys: Iterable, value: Any) -> None:
     """Store in nested dictionaries."""
     ki = iter(keys)
     try:
-        key = next(ki)
+        key: Any = next(ki)
     except StopIteration:
         raise KeyError(keys)
     while True:
@@ -50,7 +51,7 @@ def nset(d: MutableMapping[T, Any], keys: Iterable[T], value: Any) -> None:
         key = next_key
     d[key] = value
 
-def nupdate(d: MutableMapping, s: Mapping) -> MutableMapping:
+def nupdate(d: MM, s: Mapping) -> MM:
     """Update nested dictionaries."""
     for k, v in s.items():
         if k not in d:

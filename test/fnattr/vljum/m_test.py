@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT
 """Test vljum.m."""
 
+import filecmp
 import pprint
 
 from copy import deepcopy
@@ -213,7 +214,8 @@ def test_m_rename(monkeypatch):
     mock_rename, result = mk_mock_rename()
     monkeypatch.setattr(Path, 'rename', mock_rename)
 
-    m.with_dir('/home/sfc').with_suffix('jpg').add('title', 'Title').rename()
+    m.with_dir('/home/sfc').with_suffix('jpg').add('title', 'Title')
+    m.rename(mkdir=False)
     assert m.original() == q
     assert result['src'] == p
     assert result['dst'] == q
@@ -230,11 +232,42 @@ def test_m_rename_exists(monkeypatch):
     with pytest.raises(FileExistsError):
         m.rename()
 
+def test_m_rename_exists_dedup_differ(monkeypatch):
+    m = M().file('/etc/passwd')
+    monkeypatch.setattr(Path, 'exists', lambda _: True)
+    monkeypatch.setattr(Path, 'samefile', lambda _1, _2: False)
+    monkeypatch.setattr(filecmp, 'cmp', lambda _1, _2, **_kw: False)
+    with pytest.raises(FileExistsError):
+        m.rename(dedup=True)
+
+def test_m_rename_exists_dedup_same(monkeypatch):
+    m = M().file('/etc/passwd')
+
+    def mk_mock_unlink():
+        d = {}
+
+        def mock(self):
+            d['src'] = self
+
+        return (mock, d)
+
+    mock_unlink, unlinked = mk_mock_unlink()
+    monkeypatch.setattr(Path, 'exists', lambda _: True)
+    monkeypatch.setattr(Path, 'samefile', lambda _1, _2: False)
+    monkeypatch.setattr(Path, 'unlink', mock_unlink)
+    monkeypatch.setattr(filecmp, 'cmp', lambda _1, _2, **_kw: True)
+    m.rename(dedup=True)
+    assert str(unlinked['src']) == '/etc/passwd'
+
 def test_m_rename_samefile(monkeypatch):
     m = M().file('/etc/passwd')
     monkeypatch.setattr(Path, 'exists', lambda _: True)
     monkeypatch.setattr(Path, 'samefile', lambda _1, _2: True)
     m.rename()
+
+def test_m_rename_dryrun(monkeypatch):
+    m = M().file('/etc/passwd')
+    m.rename(dryrun=True)
 
 def test_m_remove_one():
     m = M().decode('[x=1; x=2; x=3; z=a]').remove('x', '2')

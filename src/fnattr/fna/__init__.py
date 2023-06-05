@@ -8,6 +8,7 @@ import sys
 
 import fnattr.util.config
 import fnattr.util.io
+import fnattr.util.log
 import fnattr.vljum.m
 import fnattr.vljum.runner
 import fnattr.vljumap.enc
@@ -48,8 +49,8 @@ def main(argv: list[str] | None = None) -> int:
         '-L',
         metavar='LEVEL',
         type=str,
-        choices=[c for c in logging.getLevelNamesMapping() if c != 'NOTSET'],
-        default='INFO')
+        choices=fnattr.util.log.CHOICES,
+        default='WARNING')
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument(
         '--dsl',
@@ -89,16 +90,15 @@ def main(argv: list[str] | None = None) -> int:
         help='Part of a subcommand, or an expression or statement.')
     args = parser.parse_args(argv[1 :])
 
-    logging.basicConfig(
-        level=getattr(logging, args.log_level.upper()),
-        format=f'{cmd}: %(levelname)s: %(message)s')
+    log.level(cmd, args.log_level)
 
-    config = fnattr.util.config.read_cmd_configs(cmd, args.config)
-    options = fnattr.util.config.merge_options(
-        config.get('option'), args, {
-            'decoder': {'default': 'v3'},
-            'encoder': {'default': 'v3'},
-        })
+    config, options = fnattr.util.config.read_cmd_configs_and_merge_options(
+        cmd,
+        args.config,
+        args,
+        decoder='v3',
+        encoder='v3',
+    )
     fnattr.vljum.m.M.configure_options(options)
     fnattr.vljum.m.M.configure_sites(config.get('site', {}))
 

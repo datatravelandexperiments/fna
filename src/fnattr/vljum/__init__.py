@@ -2,6 +2,8 @@
 """VljuMap operations."""
 
 import copy
+import filecmp
+import logging
 import re
 import sys
 
@@ -85,8 +87,7 @@ class VljuM(VljuMap):
              decoder: EncoderArg = None,
              factory: FactoryArg = None) -> Self:
         self.set_path(s)
-        r = self.decoder.get(decoder).decode_file(self,
-                                                  self._original_path,
+        r = self.decoder.get(decoder).decode_file(self, self._original_path,
                                                   self.factory.get(factory))
         self._current_dir = r.directory
         self._current_suffix = r.suffix
@@ -100,8 +101,7 @@ class VljuM(VljuMap):
              decoder: EncoderArg = None,
              factory: FactoryArg = None) -> Self:
         with open_input(file, sys.stdin) as f:
-            self.decoder.get(decoder).decode(self,
-                                             f.read(),
+            self.decoder.get(decoder).decode(self, f.read(),
                                              self.factory.get(factory))
         return self
 
@@ -115,15 +115,33 @@ class VljuM(VljuMap):
         super().remove(k, self._vlju(k, v, factory))
         return self
 
-    def rename(self, encoder: EncoderArg = None, mode: ModeArg = None) -> Self:
+    def rename(self,
+               encoder: EncoderArg = None,
+               mode: ModeArg = None,
+               *,
+               mkdir: bool = True,
+               dedup: bool = False,
+               dryrun: bool = False) -> Self:
         if self._original_path == Path():
             message = 'no file to rename'
             raise Error(message)
         modified_path = self.filename(encoder, self.mode.get(mode))
+        logging.info('rename: %s', self._original_path)
+        logging.info('    to: %s', modified_path)
+        if dryrun:
+            return self
         if modified_path.exists():
             if modified_path.samefile(self._original_path):
+                logging.info('same file')
+                return self
+            if dedup and filecmp.cmp(
+                    self._original_path, modified_path, shallow=False):
+                logging.info('removing duplicate')
+                self._original_path.unlink()
                 return self
             raise FileExistsError(modified_path)
+        if mkdir and not modified_path.parent.exists():
+            modified_path.parent.mkdir(parents=True)
         self._original_path.rename(modified_path)
         self.set_path(modified_path)
         return self
@@ -157,7 +175,7 @@ class VljuM(VljuMap):
             f.write(self.encoder.get(encoder).encode(self, self.mode.get(mode)))
         return self
 
-    def z(self, file: TextIO = sys.stderr) -> Self:     # pragma: no coverage
+    def z(self, file: TextIO = sys.stderr) -> Self:  # pragma: no coverage
         print(repr(self), file=file)
         return self
 

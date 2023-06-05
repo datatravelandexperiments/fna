@@ -123,29 +123,32 @@ def test_read_configs(monkeypatch):
     assert d == {'options': {'encoder': 'v0'}}
 
 def test_read_configs_args(monkeypatch):
-    f = io.BytesIO(b'[options]\nencoder = "v0"\n')
+    f = io.BytesIO(b'[option]\nencoder = "v0"\n')
+    monkeypatch.setattr(Path, 'is_dir', lambda _: False)
     monkeypatch.setattr(Path, 'open', lambda *_: f)
     d = config.read_cmd_configs('test', ['meh'])
-    assert d == {'options': {'encoder': 'v0'}}
+    assert d == {'option': {'encoder': 'v0'}}
 
 def test_merge_options(monkeypatch):
-    options = {'a': 1, 'b': 2}
+    option = {'a': 1, 'b': 2}
     args = argparse.Namespace(a=None, b=22, c=None, config=None)
-    d = config.merge_options(options, args, {
-        'a': {'default': 10},
-        'b': {'default': 20},
-        'c': {'default': 30},
-    })
+    d = config.merge_options(
+        option, args, a={'default': 10}, b={'default': 20}, c={'default': 30})
     assert d == {'a': 1, 'b': 22, 'c': 30}
 
 def test_merge_options_none(monkeypatch):
     args = argparse.Namespace(a=None, b=22, c=None, config=None)
-    d = config.merge_options(None, args, {
-        'a': {'default': 10},
-        'b': {'default': 20},
-        'c': {'default': 30},
-    })
+    d = config.merge_options(None, args, a=10, b=20, c=30)
     assert d == {'a': 10, 'b': 22, 'c': 30}
+
+def test_rccamo(monkeypatch):
+    f = io.BytesIO(b'[option]\nencoder = "v0"\na = 1\n')
+    monkeypatch.setattr(Path, 'open', lambda *_: f)
+    args = argparse.Namespace(a=None, b=22, c=None, config=None)
+    c, options = config.read_cmd_configs_and_merge_options(
+        'test', [], args, a=10, b=20, c=30)
+    assert options == {'encoder': 'v0', 'a': 1, 'b': 22, 'c': 30}
+    assert c == {'option': options}
 
 def test_read_configs_bad_toml(monkeypatch, caplog):
     f = io.BytesIO(b'wtf!')
@@ -156,6 +159,7 @@ def test_read_configs_bad_toml(monkeypatch, caplog):
 
 def test_read_configs_args_bad_toml(monkeypatch, caplog):
     f = io.BytesIO(b'wtf!')
+    monkeypatch.setattr(Path, 'is_dir', lambda _: False)
     monkeypatch.setattr(Path, 'open', lambda *_: f)
     d = config.read_cmd_configs('test', ['meh'])
     assert d == {}

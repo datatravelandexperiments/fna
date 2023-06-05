@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from fnattr.util.config import merge_options, read_cmd_configs
+from fnattr.util.config import read_cmd_configs_and_merge_options
 from fnattr.util.sqlite import SQLite
 from fnattr.vlju.types.all import DOI
 from fnattr.vljum.m import M
@@ -248,20 +248,15 @@ def main(argv):
         level=getattr(logging, args.log_level.upper()),
         format=f'{cmd}: %(levelname)s: %(message)s')
 
-    config = read_cmd_configs(cmd, args.config)
-    options = merge_options(
-        config.get('option'), args, {
-            'db': {},
-            'table': {
-                'default': 'ebooks'
-            },
-            'destination': {
-                'default': '.'
-            },
-            'the': {
-                'default': 'start'
-            },
-        })
+    _config, options = read_cmd_configs_and_merge_options(
+        cmd,
+        args.config,
+        args,
+        db=None,
+        table='ebooks',
+        destination='.',
+        the='start',
+    )
 
     if not args.sha and not args.db:
         logging.error('--db is required')

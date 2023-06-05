@@ -70,17 +70,21 @@ class M(VljuM):
     @classmethod
     def evaluate(cls,
                  s: str,
-                 g: dict[str, Any] | None = None) -> Any:   # noqa: any-type
-        if g is None:
-            g = cls.exports()
-        return eval(s, g)                                   # noqa: eval
+                 glo: dict[str, Any] | None = None,
+                 loc: dict[str, Any] | None = None) -> Any:  # noqa: any-type
+        if glo is None:
+            glo = cls.exports()
+        return eval(s, glo, loc)  # noqa: eval
 
     @classmethod
-    def execute(cls, s: str, g: dict[str, Any] | None = None) -> dict[str, Any]:
-        if g is None:
-            g = cls.exports()
-        exec(s, g)  # noqa: exec-builtin
-        return g
+    def execute(cls,
+                s: str,
+                glo: dict[str, Any] | None = None,
+                loc: dict[str, Any] | None = None) -> dict[str, Any]:
+        if glo is None:
+            glo = cls.exports()
+        exec(s, glo, loc)  # noqa: exec-builtin
+        return glo
 
 def _make_free_function(cls: type, name: str) -> Callable:
     method = getattr(cls, name)

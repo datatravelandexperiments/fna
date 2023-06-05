@@ -173,6 +173,7 @@ def test_runner_command_rename(monkeypatch):
     r = mk(args=['decoder', 'sfc', 'file', D1SFC, 'order', 'a,isbn,edition'])
     mock_rename, result = mk_mock_rename()
     monkeypatch.setattr(Path, 'rename', mock_rename)
+    monkeypatch.setattr(Path, 'mkdir', lambda _, **_kw: True)
     r.runs('rename')
     assert result['src'] == Path(D1SFC)
     assert result['dst'] == Path(D1V3)
