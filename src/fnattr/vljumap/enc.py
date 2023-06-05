@@ -9,6 +9,8 @@ import shlex
 import warnings
 
 from collections.abc import Callable, Generator, Iterable
+from dataclasses import dataclass
+from pathlib import Path
 from typing import NamedTuple
 
 from fnattr.util import escape
@@ -17,8 +19,15 @@ from fnattr.util.multimap import MultiMap
 from fnattr.vlju.types.ean.isbn import is_valid_isbn10, is_valid_isbn13
 from fnattr.vljumap import VljuFactory, VljuMap
 
+@dataclass
+class DecodeFileResult:
+    directory: Path
+    stem: str
+    suffix: str
+
 EncodeCallable = Callable[[VljuMap, str | None], str]
 DecodeCallable = Callable[[VljuMap, str, VljuFactory], VljuMap]
+DecodeFileCallable = Callable[[VljuMap, Path, VljuFactory], DecodeFileResult]
 
 class Encoder:
     """Scheme for for encoding and decoding VljuMap."""
@@ -27,6 +36,7 @@ class Encoder:
                  name: str,
                  encode: EncodeCallable | None,
                  decode: DecodeCallable | None,
+                 decode_file: DecodeFileCallable | None = None,
                  desc: str | None = None,
                  description: str | None = None) -> None:
         self.name = name
@@ -34,12 +44,21 @@ class Encoder:
         self.description = description
         self.encode: EncodeCallable = encode or _unimplemented_encode
         self.decode: DecodeCallable = decode or _unimplemented_decode
+        if decode_file:
+            self.decode_file = decode_file
+        else:
+            self.decode_file = self._decode_file
 
     def can_encode(self) -> bool:
         return self.encode != _unimplemented_encode
 
     def can_decode(self) -> bool:
         return self.decode != _unimplemented_decode
+
+    def _decode_file(self, n: VljuMap, p: Path,
+                     f: VljuFactory) -> DecodeFileResult:
+        self.decode(n, p.stem, f)
+        return DecodeFileResult(p.parent, p.stem, p.suffix)
 
 def _unimplemented_decode(_n: VljuMap, _s: str,
                           _factory: VljuFactory) -> VljuMap:
@@ -114,8 +133,18 @@ def v3_encode(n: VljuMap, mode: str | None = None) -> str:
 def v3_decode(n: VljuMap, s: str, factory: VljuFactory) -> VljuMap:
     return _v3_dec(V3_CONFIG, n, s, factory)
 
+def v3_decode_file(n: VljuMap, p: Path,
+                   factory: VljuFactory) -> DecodeFileResult:
+    return _v3_dec_file(V3_CONFIG, n, p, factory)
+
 v3 = _register_encoder(
-    Encoder('v3', v3_encode, v3_decode, V3_DESC, V3_DESCRIPTION))
+    Encoder(
+        'v3',
+        v3_encode,
+        v3_decode,
+        v3_decode_file,
+        desc=V3_DESC,
+        description=V3_DESCRIPTION))
 
 def _v3_enc(config: V3Config, n: VljuMap, mode: str | None) -> str:
     m = n.to_strings(mode)
@@ -132,6 +161,20 @@ def _v3_enc(config: V3Config, n: VljuMap, mode: str | None) -> str:
         v in m.pairs() if k not in ('title', 'n'))
     attrs = attrs and f'{config.attr_start}{attrs}{config.attr_end}'
     return join_non_empty(' ', sequence, title, attrs)
+
+def _v3_dec_file(config: V3Config, n: VljuMap, p: Path,
+                 factory: VljuFactory) -> DecodeFileResult:
+    bad_suffix = (
+        config.attr_end in p.suffix
+        and p.stem.count(config.attr_start) > p.stem.count(config.attr_end))
+    if bad_suffix:
+        stem = p.stem + p.suffix
+        suffix = ''
+    else:
+        stem = p.stem
+        suffix = p.suffix
+    _v3_dec(config, n, stem, factory)
+    return DecodeFileResult(p.parent, stem, suffix)
 
 def _v3_dec(config: V3Config, n: VljuMap, s: str,
             factory: VljuFactory) -> VljuMap:
@@ -214,8 +257,18 @@ def win_encode(n: VljuMap, mode: str | None = None) -> str:
 def win_decode(n: VljuMap, s: str, factory: VljuFactory) -> VljuMap:
     return _v3_dec(WIN_CONFIG, n, s, factory)
 
+def win_decode_file(n: VljuMap, p: Path,
+                    factory: VljuFactory) -> DecodeFileResult:
+    return _v3_dec_file(WIN_CONFIG, n, p, factory)
+
 win = _register_encoder(
-    Encoder('win', win_encode, win_decode, WIN_DESC, WIN_DESCRIPTION))
+    Encoder(
+        'win',
+        win_encode,
+        win_decode,
+        win_decode_file,
+        desc=WIN_DESC,
+        description=WIN_DESCRIPTION))
 
 ###############################################################################
 #
@@ -253,8 +306,18 @@ def v2_encode(n: VljuMap, mode: str | None = None) -> str:
 def v2_decode(n: VljuMap, s: str, factory: VljuFactory) -> VljuMap:
     return _v3_dec(V2_CONFIG, n, s, factory)
 
+def v2_decode_file(n: VljuMap, p: Path,
+                   factory: VljuFactory) -> DecodeFileResult:
+    return _v3_dec_file(V2_CONFIG, n, p, factory)
+
 v2 = _register_encoder(
-    Encoder('v2', v2_encode, v2_decode, V2_DESC, V2_DESCRIPTION))
+    Encoder(
+        'v2',
+        v2_encode,
+        v2_decode,
+        v2_decode_file,
+        desc=V2_DESC,
+        description=V2_DESCRIPTION))
 
 ###############################################################################
 #
@@ -302,7 +365,8 @@ def v1_decode(n: VljuMap, s: str, factory: VljuFactory) -> VljuMap:
     return n.add_pairs(_v1_dec_iter(V1_CONFIG, s), factory)
 
 v1 = _register_encoder(
-    Encoder('v1', v1_encode, v1_decode, V1_DESC, V1_DESCRIPTION))
+    Encoder(
+        'v1', v1_encode, v1_decode, desc=V1_DESC, description=V1_DESCRIPTION))
 
 def _v1_enc_author_title(m: MultiMap) -> str:
     author = '; '.join(i for i in m['a'])
@@ -361,7 +425,8 @@ def v0_decode(n: VljuMap, s: str, factory: VljuFactory) -> VljuMap:
     return n.add_pairs(_v0_dec_iter(s), factory)
 
 v0 = _register_encoder(
-    Encoder('v0', v0_encode, v0_decode, V0_DESC, V0_DESCRIPTION))
+    Encoder(
+        'v0', v0_encode, v0_decode, desc=V0_DESC, description=V0_DESCRIPTION))
 
 V0_RE = re.compile(
     r"""
@@ -433,7 +498,12 @@ def sfc_decode(n: VljuMap, s: str, factory: VljuFactory) -> VljuMap:
     return n.add_pairs(_sfc_dec_iter(s), factory)
 
 sfc = _register_encoder(
-    Encoder('sfc', sfc_encode, sfc_decode, SFC_DESC, SFC_DESCRIPTION))
+    Encoder(
+        'sfc',
+        sfc_encode,
+        sfc_decode,
+        desc=SFC_DESC,
+        description=SFC_DESCRIPTION))
 
 SFC_TAIL_RE = re.compile(
     r"""
@@ -509,7 +579,12 @@ def _json_dec_iter(s: str) -> Generator[tuple[str, str], None, None]:
             yield (k, str(vl))
 
 json = _register_encoder(
-    Encoder('json', json_encode, json_decode, JSON_DESC, JSON_DESCRIPTION))
+    Encoder(
+        'json',
+        json_encode,
+        json_decode,
+        desc=JSON_DESC,
+        description=JSON_DESCRIPTION))
 
 ###############################################################################
 #
@@ -532,11 +607,12 @@ def shell_encode(n: VljuMap, mode: str | None = None) -> str:
     return '\n'.join(r)
 
 sh = _register_encoder(
-    Encoder('sh',
-            shell_encode,
-            _unimplemented_decode,
-            SHELL_DESC,
-            SHELL_DESCRIPTION))
+    Encoder(
+        'sh',
+        shell_encode,
+        _unimplemented_decode,
+        desc=SHELL_DESC,
+        description=SHELL_DESCRIPTION))
 
 ###############################################################################
 #
@@ -555,11 +631,12 @@ def value_encode(n: VljuMap, mode: str | None = None) -> str:
     return '\n'.join((f'{v or k}' for k, v in n.get_pairs(mode)))
 
 value = _register_encoder(
-    Encoder('value',
-            value_encode,
-            _unimplemented_decode,
-            VALUE_DESC,
-            VALUE_DESCRIPTION))
+    Encoder(
+        'value',
+        value_encode,
+        _unimplemented_decode,
+        desc=VALUE_DESC,
+        description=VALUE_DESCRIPTION))
 
 ###############################################################################
 #
@@ -588,11 +665,12 @@ def _keyvalue_dec_iter(s: str) -> Generator[tuple[str, str], None, None]:
             yield (k.strip(), v.strip())
 
 keyvalue = _register_encoder(
-    Encoder('keyvalue',
-            keyvalue_encode,
-            keyvalue_decode,
-            KEYVALUE_DESC,
-            KEYVALUE_DESCRIPTION))
+    Encoder(
+        'keyvalue',
+        keyvalue_encode,
+        keyvalue_decode,
+        desc=KEYVALUE_DESC,
+        description=KEYVALUE_DESCRIPTION))
 
 ###############################################################################
 #
@@ -614,7 +692,12 @@ def csv_decode(n: VljuMap, s: str, factory: VljuFactory) -> VljuMap:
     return n.add_pairs(_csv_dec_iter(s, dialect='unix'), factory)
 
 csv = _register_encoder(
-    Encoder('csv', csv_encode, csv_decode, CSV_DESC, CSV_DESCRIPTION))
+    Encoder(
+        'csv',
+        csv_encode,
+        csv_decode,
+        desc=CSV_DESC,
+        description=CSV_DESCRIPTION))
 
 def _csv_enc(n: VljuMap, mode: str | None, **kwargs) -> str:
     with io.StringIO() as f:

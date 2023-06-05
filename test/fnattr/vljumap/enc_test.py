@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: MIT
 """Test encoding and decoding VljuMap."""
 
+import pathlib
+
 import pytest
 
 from fnattr.vlju import Vlju
@@ -22,7 +24,8 @@ CASES = {
                 ('edition', '2'),
                 ('date', '2007'),
                 ('isbn', '0123456789'),
-            ], TstEncVlju.factory),
+            ],
+                                TstEncVlju.factory),
         'v3': ('1. [edition=2; date=2007; isbn=0123456789]'),
         'v2': ('1. {edition=2;date=2007;isbn=0123456789}'),
         'v1': ('[n=1,edition=2,date=2007,isbn=0123456789]'),
@@ -93,7 +96,8 @@ CASES = {
                 ('n', '3'),
                 ('n', '5'),
                 ('t', '12:34:56'),
-            ], TstEncVlju.factory),
+            ],
+                                TstEncVlju.factory),
         'v3': ('3.5. What? - Strange %2D a subtitle? '
                '[a=Paul Penman; a=Writer, W; edition=2; date=2007;'
                ' isbn=9780123456786; lccn=89-456; special; t=12:34:56]'),
@@ -174,7 +178,8 @@ CASES = {
                 ('a', 'Writer, W'),
                 ('title', 'Mr. Book'),
                 ('lccn', '89-456'),
-            ], TstEncVlju.factory),
+            ],
+                                TstEncVlju.factory),
         'v3': ('Mr. Book [a=Paul Penman; a=Writer, W; lccn=89-456]'),
         'v2': ('Mr. Book {a=Paul Penman;a=Writer, W;lccn=89-456}'),
         'v1': ('Paul Penman; Writer, W: Mr. Book [lccn=89-456]'),
@@ -209,11 +214,29 @@ def test_v3_decode_title_only():
 
 def test_v3_decode_missing_close():
     with pytest.warns(UserWarning, match='Expected'):
-        assert enc.v3.decode(VljuMap(), CASES['A']['v3'][:-1],
+        assert enc.v3.decode(VljuMap(),
+                             CASES['A']['v3'][:-1],
                              TstEncVlju.factory) == CASES['A']['MAP']
 
 def test_v3_decode_empty_key():
     assert enc.v3.decode(VljuMap(), '[=1]', TstEncVlju.factory) == VljuMap()
+
+@pytest.mark.parametrize(('e', 'config'),
+                         [
+                             (enc.v3, enc.V3_CONFIG),
+                             (enc.v2, enc.V2_CONFIG),
+                             (enc.win, enc.WIN_CONFIG),
+                         ])
+def test_decode_file(e, config):
+    d = pathlib.Path('/xyz')
+    s = f'{config.attr_start}t=1:30.5{config.attr_end}'
+    m = VljuMap()
+    print(f'\n{e.desc=}')
+    r = e.decode_file(m, d / s, TstEncVlju.factory)
+    assert r.directory == d
+    assert r.stem == s
+    assert r.suffix == ''
+    assert m == VljuMap().add('t', TstEncVlju('1:30.5'))
 
 def test_v0_decode():
     assert enc.v0.decode(VljuMap(), CASES['A']['v0'],
@@ -252,7 +275,8 @@ def test_json_decode():
                            TstEncVlju.factory) == CASES['D']['MAP']
 
 def test_keyvalue_decode():
-    assert enc.keyvalue.decode(VljuMap(), CASES['D']['keyvalue'] + '\n',
+    assert enc.keyvalue.decode(VljuMap(),
+                               CASES['D']['keyvalue'] + '\n',
                                TstEncVlju.factory) == CASES['D']['MAP']
 
 def test_sh_encode():

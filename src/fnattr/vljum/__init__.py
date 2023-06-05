@@ -85,9 +85,11 @@ class VljuM(VljuMap):
              decoder: EncoderArg = None,
              factory: FactoryArg = None) -> Self:
         self.set_path(s)
-        self.decoder.get(decoder).decode(self,
-                                         self._original_path.stem,
-                                         self.factory.get(factory))
+        r = self.decoder.get(decoder).decode_file(self,
+                                                  self._original_path,
+                                                  self.factory.get(factory))
+        self._current_dir = r.directory
+        self._current_suffix = r.suffix
         return self
 
     def order(self, *args: str) -> Self:
@@ -198,7 +200,8 @@ class VljuM(VljuMap):
         if not e:
             message = 'no file name'
             raise Error(message)
-        return (self._current_dir / e).with_suffix(self._current_suffix)
+        e += self._current_suffix
+        return self._current_dir / e
 
     # Vlju reduction.
 
