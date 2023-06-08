@@ -89,15 +89,16 @@ def main(argv: list[str] | None = None) -> int:
         help='Part of a subcommand, or an expression or statement.')
     args = parser.parse_args(argv[1 :])
 
-    logging.basicConfig(level=getattr(logging, args.log_level.upper()),
-                        format=f'{cmd}: %(levelname)s: %(message)s')
+    logging.basicConfig(
+        level=getattr(logging, args.log_level.upper()),
+        format=f'{cmd}: %(levelname)s: %(message)s')
 
     config = fnattr.util.config.read_cmd_configs(cmd, args.config)
-    options = config.get('option', {})
-    if args.decoder:
-        options['decoder'] = args.decoder
-    if args.encoder:
-        options['encoder'] = args.encoder
+    options = fnattr.util.config.merge_options(
+        config.get('option'), args, {
+            'decoder': {'default': 'v3'},
+            'encoder': {'default': 'v3'},
+        })
     fnattr.vljum.m.M.configure_options(options)
     fnattr.vljum.m.M.configure_sites(config.get('site', {}))
 
@@ -123,6 +124,7 @@ def main(argv: list[str] | None = None) -> int:
         logging.error('Unhandled exception: %s%s', type(e).__name__, e.args)
         if logging.getLogger().getEffectiveLevel() < logging.INFO:
             raise
+
     return 0
 
 if __name__ == '__main__':

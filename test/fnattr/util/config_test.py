@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT
 """Test configuration utilities."""
 
+import argparse
 import io
 
 from pathlib import Path
@@ -76,8 +77,10 @@ def test_xdg_dirs_environ(monkeypatch):
     assert d == [Path(p1), Path(p2), Path(p3)]
 
 def test_xdg_dirs_no_home(monkeypatch):
+
     def raise_runtime_error():
         raise RuntimeError
+
     p1 = '/home/test'
     p2 = '/etc/test'
     p3 = '/usr/share/test'
@@ -125,6 +128,25 @@ def test_read_configs_args(monkeypatch):
     d = config.read_cmd_configs('test', ['meh'])
     assert d == {'options': {'encoder': 'v0'}}
 
+def test_merge_options(monkeypatch):
+    options = {'a': 1, 'b': 2}
+    args = argparse.Namespace(a=None, b=22, c=None, config=None)
+    d = config.merge_options(options, args, {
+        'a': {'default': 10},
+        'b': {'default': 20},
+        'c': {'default': 30},
+    })
+    assert d == {'a': 1, 'b': 22, 'c': 30}
+
+def test_merge_options_none(monkeypatch):
+    args = argparse.Namespace(a=None, b=22, c=None, config=None)
+    d = config.merge_options(None, args, {
+        'a': {'default': 10},
+        'b': {'default': 20},
+        'c': {'default': 30},
+    })
+    assert d == {'a': 10, 'b': 22, 'c': 30}
+
 def test_read_configs_bad_toml(monkeypatch, caplog):
     f = io.BytesIO(b'wtf!')
     monkeypatch.setattr(Path, 'open', lambda *_: f)
@@ -138,8 +160,3 @@ def test_read_configs_args_bad_toml(monkeypatch, caplog):
     d = config.read_cmd_configs('test', ['meh'])
     assert d == {}
     assert 'meh:' in caplog.record_tuples[0][2]
-
-def test_nested_update():
-    d = {'a': {'b': 'B'}, 'z': 1}
-    config.nested_update(d, {'a': {'b': '!', 'c': '?'}})
-    assert d == {'a': {'b': '!', 'c': '?'}, 'z': 1}

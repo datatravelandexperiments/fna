@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT
 """Configuration-file related utilities."""
 
+import argparse
 import contextlib
 import logging
 import os
@@ -9,6 +10,8 @@ import tomllib
 from collections.abc import Iterable
 from pathlib import Path
 from typing import Any, Self
+
+from fnattr.util import nested
 
 class Dirs(list[Path]):
     """Maintain a list of directories."""
@@ -89,19 +92,19 @@ def read_configs(args: Iterable[Path | str]) -> dict:
     config: dict[str, Any] = {}
     for p in args:
         if c := read_toml_config(p):
-            nested_update(config, c)
+            nested.nupdate(config, c)
     return config
 
 def read_xdg_configs(files: Iterable[Path]) -> dict:
     config: dict[str, Any] = {}
     for file in files:
         if (cf := xdg_config(file)) and (c := read_toml_config(cf)):
-            nested_update(config, c)
+            nested.nupdate(config, c)
     return config
 
-def read_cmd_configs(cmd: str, args: Iterable[Path | str]) -> dict:
-    if args:
-        return read_configs(args)
+def read_cmd_configs(cmd: str, configs: Iterable[Path | str]) -> dict:
+    if configs:
+        return read_configs(configs)
     return read_xdg_configs([
         Path('vlju.toml'),
         Path('fnattr/vlju.toml'),
@@ -109,10 +112,13 @@ def read_cmd_configs(cmd: str, args: Iterable[Path | str]) -> dict:
         Path(f'fnattr/{cmd}.toml'),
     ])
 
-def nested_update(dst: dict, src: dict) -> dict:
-    for k, v in src.items():
-        if k in dst and isinstance(dst[k], dict) and isinstance(v, dict):
-            nested_update(dst[k], v)
-        else:
-            dst[k] = v
-    return dst
+def merge_options(options: dict[str, Any] | None, args: argparse.Namespace,
+                  arg_options: dict[str, Any]) -> dict[str, Any]:
+    if options is None:
+        options = {}
+    for k, d in arg_options.items():
+        if (a := getattr(args, k)) is not None:
+            nested.dset(options, d.get('option', k), a)
+        elif k not in options and (v := d.get('default')) is not None:
+            nested.dset(options, d.get('option', k), v)
+    return options

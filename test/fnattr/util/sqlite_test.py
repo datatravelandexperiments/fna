@@ -42,6 +42,18 @@ def test_database_with_on_create():
         cur = db.execute('SELECT COUNT(*) FROM test;')
         assert cur.fetchone() == (0, )
 
+def test_database_default_foreign_keys():
+    with ValueDatabase() as db:
+        cur = db.execute('PRAGMA foreign_keys;')
+        assert cur.fetchone() == (1, )
+
+def test_database_omit_foreign_keys():
+    class T(SQLite):
+        foreign_keys = None
+    with T() as db:
+        cur = db.execute('PRAGMA foreign_keys;')
+        assert cur.fetchone() == (0, )
+
 def test_database_idempotent_connect():
     db = ValueDatabase()
     db.connect()

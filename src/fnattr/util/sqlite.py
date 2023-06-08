@@ -28,8 +28,9 @@ class SQLite:
     # These are intended for subclasses to provide initialization for all
     # instances of the subclasses. The model is that a subclass defines a
     # database including a schema definition as its `on_create`.
-    on_connect: Iterable[str] | None = None
     on_create: Iterable[str] | None = None
+    on_connect: Iterable[str] | None = None
+    foreign_keys: bool | None = True
 
     def __init__(self,
                  filename: PathLike = '',
@@ -50,6 +51,9 @@ class SQLite:
         """Open and initialize the database connection."""
         if not self._connection:
             self._connection, created = self._open()
+            if self.foreign_keys is not None:
+                self._connection.execute(
+                    f'PRAGMA foreign_keys = {int(self.foreign_keys)};')
             if self.on_connect:
                 for i in self.on_connect:
                     self._connection.execute(i)

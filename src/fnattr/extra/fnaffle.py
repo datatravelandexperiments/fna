@@ -5,18 +5,17 @@ import argparse
 import logging
 import sys
 
-from collections.abc import Iterable
+from collections.abc import Iterable, MutableMapping
 from pathlib import Path
 
-from fnattr.util.config import read_cmd_configs, xdg_config
+from fnattr.util.config import read_cmd_configs, merge_options, xdg_config
 from fnattr.vljum.m import M
 from fnattr.vljumap import enc
 
 def find_map_files(cmd: str) -> list[Path]:
     return [
         f for f in (xdg_config('vlju/fnaffle.map'),
-                    xdg_config(f'{cmd}/fnaffle.map'),
-                    Path('fnaffle.map'),
+                    xdg_config(f'{cmd}/fnaffle.map'), Path('fnaffle.map'),
                     Path('.fnaffle')) if f is not None and f.exists()
     ]
 
@@ -137,13 +136,14 @@ def main(argv: list[str] | None = None) -> int:
         default=[],
         help='File name(s).')
     args = parser.parse_args(argv[1 :])
-    logging.basicConfig(level=getattr(logging, args.log_level.upper()),
-                        format=f'{cmd}: %(levelname)s: %(message)s')
+
+    logging.basicConfig(
+        level=getattr(logging, args.log_level.upper()),
+        format=f'{cmd}: %(levelname)s: %(message)s')
 
     config = read_cmd_configs(cmd, args.config)
-    options = config.get('option', {})
-    if args.decoder:
-        options['decoder'] = args.decoder
+    options = merge_options(
+        config.get('option'), args, {'decoder': {'default': 'v3'}})
     M.configure_options(options)
     M.configure_sites(config.get('site', {}))
 
