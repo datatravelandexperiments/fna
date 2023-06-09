@@ -10,8 +10,9 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from fnattr.util.config import read_cmd_configs, merge_options
+from fnattr.util.config import merge_options, read_cmd_configs
 from fnattr.util.sqlite import SQLite
+from fnattr.vlju.types.all import DOI
 from fnattr.vljum.m import M
 from fnattr.vljumap import enc
 
@@ -22,7 +23,7 @@ COLUMNS = [
     'Editor',
     'Edition',
     'Copyright Year',
-    'Publication Date',
+    'Publication Year',
     'ISBN#',
     'LCCN#',
     'ISSN#',
@@ -42,53 +43,53 @@ def destination(p: Path, row, options: dict[str, Any]) -> Path | None:
     for k, f in (('Author', 'a'), ('Editor', 'ed')):
         if t := row.get(k):
             for a in t.split(';'):
-                m.add(f, a.strip())
+                m.add(f, a.strip().strip(','))
 
     for k, f in (('ISBN#', 'isbn'), ('LCCN#', 'lccn'), ('DOI', 'doi'),
-                 ('ISSN#', 'issn'), ('Edition',
-                                     'edition'), ('LoC Classification', 'loc')):
+                 ('ISSN#', 'issn'), ('Edition', 'edition'),
+                 ('LoC Classification', 'loc'), ('Series Number', 'v')):
         if t := row.get(k):
             m.add(f, t)
 
     for k in ('Publication Date', 'Copyright Year'):
         if t := row.get(k):
-            m.add('date', fix_date(t, options))
+            m.add('date', fix_date(t))
 
-    subdir = destination_dir(options, m)
+    subdir = destination_dir(m)
     dstdir = options['destination'] / subdir
     maxlen = min(options['PATH_MAX'] - len(str(dstdir)) - 1,
                  options['FILE_MAX']) - len(p.suffix)
-    file = destination_file(options, maxlen, m)
+    logging.debug("DIR:  '%s'", dstdir)
+    file = destination_file(m, maxlen)
     if file is None:
         return None
     file += p.suffix
-    logging.debug('DIR:  ‘%s’', dstdir)
-    logging.debug('FILE: ‘%s’', file)
+    logging.debug("FILE: '%s'", file)
     dst = Path(dstdir) / Path(file)
-    logging.debug('DST:  ‘%s’', dst)
+    logging.debug("DST:  '%s'", dst)
     return dst
 
-def fix_title(s: str, options) -> str:
+def fix_title(s: str, options: dict[str, Any]) -> str:
     if options['the'] == 'start' and s.endswith(', The'):
         s = 'The ' + s[:-5]
     elif options['the'] == 'end' and s.startswith('The '):
         s = s[4 :] + ', The'
-    return smarten_up(s, options)
+    return smarten_up(s)
 
-def fix_date(s: str, options) -> str:
+def fix_date(s: str) -> str:
     y, n = re.subn(r'.*\b([12]\d{3})\b.*', r'\1', s)
     if n:
         s = y
     return s
 
-def smarten_up(s: str, options) -> str:
+def smarten_up(s: str) -> str:
     if '--' in s:
         s = s.replace('--', ' — ')
     return ' '.join(s.split())
 
-def destination_dir(options, v: M) -> str:
-    if 'loc' in v:
-        t = str(v['loc'][0])
+def destination_dir(m: M) -> str:
+    if 'loc' in m:
+        t = str(m['loc'][0])
         b, n = re.subn(r'CPB Box no. (\d+).*', r'\1', t)
         if n:
             b = f'{int(b):04}'
@@ -99,49 +100,39 @@ def destination_dir(options, v: M) -> str:
             t = t[1 :]
         r = r[: 2].upper()
         if r:
-            return r
+            return f'lc/{r}'
 
-    if 'isbn' in v:
-        t = str(v['isbn'][0])
+    if 'isbn' in m:
+        t = str(m['isbn'][0])
         return f'isbn/{(int(t[:6]) - 978000):03}'
 
-    if 'doi' in v:
-        t = str(v['doi'][0])
-        assert isinstance(t, vlju.types.all.DOI)
-        return f'doi/{str(t.prefix())}'
+    if 'doi' in m:
+        t = m['doi'][0]
+        assert isinstance(t, DOI)
+        return f'doi/{t.prefix()}'
 
     return 'other'
 
-def destination_file(options, maxlen: int, m: M) -> str | None:
-    keys = []
-    if 'title' in m:
-        keys.append('title')
-    for k in ('a', 'ed'):
-        if k in m:
-            keys.append(k)
-            break
-    for k in ('isbn', 'doi', 'lccn', 'issn'):
-        if k in m:
-            keys.append(k)
-            break
-    for k in ('edition', 'date'):
-        if k in m:
-            keys.append(k)
-    if 'date' in m:
-        keys.append('date')
+def destination_file(m: M, maxlen: int) -> str | None:
+    keys = [
+        k for k in ('title', 'a', 'ed', 'v', 'isbn', 'doi', 'lccn', 'issn',
+                    'edition', 'date') if k in m
+    ]
     m = m.submap(keys)
 
     encoder = m.encoder.get()
     s = encoder.encode(m)
     if len(s) <= maxlen:
         return s
+    logging.debug('long: %d>%d %s', len(s), maxlen, s)
 
     for k in ('date', 'edition', 'ed'):
         if k in keys:
-            keys.remove(k)
+            m.remove(k)
             s = encoder.encode(m)
             if len(s) <= maxlen:
                 return s
+            logging.debug('long: %d>%d %s', len(s), maxlen, s)
 
     for k in ('title', 'a'):
         while len(m[k]) > 1:
@@ -149,15 +140,16 @@ def destination_file(options, maxlen: int, m: M) -> str | None:
             s = encoder.encode(m)
             if len(s) <= maxlen:
                 return s
+            logging.debug('long: %d>%d %s', len(s), maxlen, s)
 
     return None
 
 def sha1(p: Path) -> str | None:
     if p.is_file():
         try:
-            with open(p, 'rb', buffering=0) as f:
+            with p.open('rb') as f:
                 return hashlib.file_digest(f, hashlib.sha1).hexdigest()
-        except IOError as e:
+        except OSError as e:
             logging.error(e)
             return None
 
@@ -171,7 +163,7 @@ def sha1(p: Path) -> str | None:
         files.sort()
         h = hashlib.sha1()
         for file in files:
-            with open(file, 'rb', buffering=0) as f:
+            with Path(file).open('rb') as f:
                 h = hashlib.file_digest(f, lambda: h)
         return h.hexdigest()
 
@@ -187,12 +179,25 @@ def main(argv):
 
     parser = argparse.ArgumentParser(prog=cmd, description='TODO')
     parser.add_argument(
+        '--config',
+        '-c',
+        metavar='FILE',
+        type=str,
+        action='append',
+        help='Configuration file.')
+    parser.add_argument(
         '--db',
         '--database',
         '-d',
         metavar='DB',
         type=str,
         help='SQLite database file.')
+    parser.add_argument(
+        '--table',
+        '-t',
+        metavar='TABLE',
+        type=str,
+        help='SQLite database table.')
     parser.add_argument(
         '--dedup',
         action='store_true',
@@ -247,24 +252,32 @@ def main(argv):
     options = merge_options(
         config.get('option'), args, {
             'db': {},
-            'decoder': {'default': 'v3'},
-            'encoder': {'default': 'v3'},
-            'destination': {'default': '.'},
-            'the': {'default': 'start'},
+            'table': {
+                'default': 'ebooks'
+            },
+            'destination': {
+                'default': '.'
+            },
+            'the': {
+                'default': 'start'
+            },
         })
 
     if not args.sha and not args.db:
         logging.error('--db is required')
         return 1
 
-    options['PATH_MAX'] = os.pathconf(args.destination, 'PC_PATH_MAX')
-    options['FILE_MAX'] = os.pathconf(args.destination, 'PC_NAME_MAX')
     options['destination'] = Path(options['destination'])
+    options['PATH_MAX'] = os.pathconf(options['destination'], 'PC_PATH_MAX')
+    options['FILE_MAX'] = os.pathconf(options['destination'], 'PC_NAME_MAX')
 
     M.configure_options(options)
 
-    db = SQLite(args.db).connect()
-    db.connection().row_factory = dict_factory
+    if args.db:
+        db = SQLite(args.db).connect()
+        db.connection().row_factory = dict_factory
+    else:
+        db = None
 
     for file in args.files:
 
@@ -279,19 +292,20 @@ def main(argv):
             print(f'{sha} {file}')
             continue
         logging.debug('sha=%s', sha)
+        if not db:
+            continue
 
-        cursor = db.load('tellico', *COLUMNS, SHA1=sha)
+        cursor = db.load(options['table'], *COLUMNS, SHA1=sha)
         rows = cursor.fetchall()
         if len(rows) == 0:
-            logging.error('%s: No entry for ‘%s’', cmd, src)
+            logging.error("%s: No entry for '%s'", cmd, src)
             r = 1
             continue
         if len(rows) > 1:
             if args.ignore_hash_collision:
-                logging.warning('%s: Hash collision for ‘%s’: %s', cmd, src,
-                                sha)
+                logging.warning("Hash collision for '%s': %s", src, sha)
             else:
-                logging.error('%s: Hash collision for ‘%s’: %s', cmd, src, sha)
+                logging.error("Hash collision for '%s': %s", src, sha)
                 logging.debug('%s', rows[0])
                 logging.debug('%s', rows[1])
                 r = 1
@@ -299,7 +313,7 @@ def main(argv):
 
         dst = destination(src, rows[0], options)
         if dst is None:
-            logging.error('%s: Failed to build a new name for ‘%s’', cmd, src)
+            logging.error("%s: Failed to build a new name for '%s'", cmd, src)
             r = 1
             continue
 
@@ -311,10 +325,11 @@ def main(argv):
                 if dstsha == sha:
                     logging.info('%s: destination is identical: %s', cmd, dst)
                     if not args.dryrun and src.is_file():
-                        # TODO: dirs
                         src.unlink()
                     continue
-            logging.error('%s: destination exists: %s', cmd, dst)
+                logging.debug('%s %s', sha, src)
+                logging.debug('%s %s', dstsha, dst)
+            logging.error('destination exists: %s', dst)
             r = 1
             continue
 
@@ -325,7 +340,8 @@ def main(argv):
 
         logging.info('To:   %s', dst)
 
-    db.close()
+    if db:
+        db.close()
     return r
 
 if __name__ == '__main__':
