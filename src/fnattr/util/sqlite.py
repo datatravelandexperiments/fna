@@ -203,6 +203,7 @@ class SQLite:
     def _init_table_column_cache(self) -> None:
         c = self.connection().execute(
             'SELECT name FROM sqlite_master WHERE type == "table"')
+        c.row_factory = None
         while (row := c.fetchone()):
             table = row[0]
             self._table_columns[table] = None
@@ -210,6 +211,7 @@ class SQLite:
     def _load_table_column_cache(self, table: str) -> list[str]:
         r = []
         c = self.connection().execute(f'PRAGMA TABLE_INFO({quote_id(table)})')
+        c.row_factory = None
         while (row := c.fetchone()):
             column = row[1]
             r.append(column)
