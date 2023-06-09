@@ -6,6 +6,7 @@ import io
 import json as py_json
 import re
 import shlex
+import urllib.parse
 import warnings
 
 from collections.abc import Callable, Generator, Iterable
@@ -125,7 +126,10 @@ class V3Config(NamedTuple):
     seq_end: str = '.'
     seq_join: str = '.'
 
-V3_CONFIG = V3Config(quote=escape.unixfile)
+V3_CONFIG = V3Config(
+    quote=escape.Escape(
+        escape.mkencode_urlish(escape.UNSAFE_ON_UNIX
+                               + '[];='), urllib.parse.unquote))
 
 def v3_encode(n: VljuMap, mode: str | None = None) -> str:
     return _v3_enc(V3_CONFIG, n, mode)
@@ -157,8 +161,9 @@ def _v3_enc(config: V3Config, n: VljuMap, mode: str | None) -> str:
         config.quote.encode(i).replace(config.title_join, title_qjoin)
         for i in m['title'])
     attrs = config.attr_join.join(
-        kv_fmt(k, v, config.attr_kv, config.quote) for k,
-        v in m.pairs() if k not in ('title', 'n'))
+        kv_fmt(k, v, config.attr_kv, config.quote)
+        for k, v in m.pairs()
+        if k not in ('title', 'n'))
     attrs = attrs and f'{config.attr_start}{attrs}{config.attr_end}'
     return join_non_empty(' ', sequence, title, attrs)
 
@@ -249,7 +254,10 @@ WIN_DESCRIPTION = """
   are URL-escaped to comply with Windows file name limitations.
 """
 
-WIN_CONFIG = V3Config(quote=escape.winfile)
+WIN_CONFIG = V3Config(
+    quote=escape.Escape(
+        escape.mkencode_urlish(escape.UNSAFE_ON_WINDOWS
+                               + '[];='), urllib.parse.unquote))
 
 def win_encode(n: VljuMap, mode: str | None = None) -> str:
     return _v3_enc(WIN_CONFIG, n, mode)
@@ -298,7 +306,12 @@ V2_DESCRIPTION = """
 """ + V2_GRAMMAR
 
 V2_CONFIG = V3Config(
-    quote=escape.unixfile, attr_start='{', attr_join=';', attr_end='}')
+    quote=escape.Escape(
+        escape.mkencode_urlish(escape.UNSAFE_ON_UNIX + '{};='),
+        urllib.parse.unquote),
+    attr_start='{',
+    attr_join=';',
+    attr_end='}')
 
 def v2_encode(n: VljuMap, mode: str | None = None) -> str:
     return _v3_enc(V2_CONFIG, n, mode)
@@ -357,8 +370,9 @@ def v1_encode(n: VljuMap, mode: str | None = None) -> str:
     m = n.to_strings(mode)
     r = _v1_enc_author_title(m)
     attrs = ','.join(
-        kv_fmt(k, v, '=', escape.unixfile) for k,
-        v in m.pairs() if k not in ('title', 'a'))
+        kv_fmt(k, v, '=', escape.unixfile)
+        for k, v in m.pairs()
+        if k not in ('title', 'a'))
     return spj(r, f'[{attrs}]') if attrs else r
 
 def v1_decode(n: VljuMap, s: str, factory: VljuFactory) -> VljuMap:
@@ -435,8 +449,7 @@ V0_RE = re.compile(
             (?P<isbn> (?: [0-9]{13} | [0-9]{9}[0-9xX] ) )
         | lccn=(?P<lccn> \S+ )
         )$
-        """,
-    re.VERBOSE)
+        """, re.VERBOSE)
 
 def _v0_dec_iter(s: str) -> Generator[tuple[str, str], None, None]:
     if m := V0_RE.fullmatch(s):
@@ -512,8 +525,7 @@ SFC_TAIL_RE = re.compile(
             (?P<date> [12]\d\d\d ) |
             (?: (?P<edition> \d+ ) \w*\s+edition )
         )$
-        """,
-    re.X)
+        """, re.X)
 
 def _sfc_dec_iter(s: str) -> Generator[tuple[str, str], None, None]:
     while True:
