@@ -50,20 +50,6 @@ def test_add_env_dirs_default_false(monkeypatch):
     d = config.Dirs().add_env_dirs('EVaR', p)
     assert d == []
 
-def test_find_first(monkeypatch):
-    monkeypatch.setattr(Path, 'is_dir', lambda _: True)
-    monkeypatch.setattr(Path, 'exists', lambda x: str(x)[1] == 'y')
-    p = [Path('/x'), Path('/y')]
-    d = config.Dirs().add_env_dirs('EVaR', p)
-    assert d.find_first('fu') == Path('/y/fu')
-
-def test_find_first_fail(monkeypatch):
-    monkeypatch.setattr(Path, 'is_dir', lambda _: True)
-    monkeypatch.setattr(Path, 'exists', lambda _: False)
-    p = [Path('/x'), Path('/y')]
-    d = config.Dirs().add_env_dirs('EVaR', p)
-    assert d.find_first('fu') is None
-
 def test_xdg_dirs_environ(monkeypatch):
     p0 = '/home/homu'
     p1 = '/home/test'
@@ -73,7 +59,7 @@ def test_xdg_dirs_environ(monkeypatch):
     monkeypatch.setattr(Path, 'home', lambda: Path(p0))
     monkeypatch.setenv('XDG_TEST_HOME', p1)
     monkeypatch.setenv('XDG_TEST_DIRS', f'{p2}:{p3}')
-    d = config.xdg_dirs('TEST', 'testing', [])
+    d = config.Dirs().add_xdg_dirs('TEST', 'testing', [])
     assert d == [Path(p1), Path(p2), Path(p3)]
 
 def test_xdg_dirs_no_home(monkeypatch):
@@ -88,7 +74,7 @@ def test_xdg_dirs_no_home(monkeypatch):
     monkeypatch.setattr(Path, 'home', raise_runtime_error)
     monkeypatch.setenv('XDG_TEST_HOME', p1)
     monkeypatch.setenv('XDG_TEST_DIRS', f'{p2}:{p3}')
-    d = config.xdg_dirs('TEST', 'testing', [])
+    d = config.Dirs().add_xdg_dirs('TEST', 'testing', [])
     assert d == [Path(p1), Path(p2), Path(p3)]
 
 def test_xdg_dirs_environ_home(monkeypatch):
@@ -99,35 +85,14 @@ def test_xdg_dirs_environ_home(monkeypatch):
     monkeypatch.setattr(Path, 'is_dir', lambda _: True)
     monkeypatch.setenv('XDG_TEST_HOME', p1)
     monkeypatch.setenv('XDG_TEST_DIRS', f'{p2}:{p3}')
-    d = config.xdg_dirs('TEST', 'testing', [], Path(p0))
+    d = config.Dirs().add_xdg_dirs('TEST', 'testing', [], Path(p0))
     assert d == [Path(p1), Path(p2), Path(p3)]
 
 def test_xdg_dirs_defaults(monkeypatch):
     monkeypatch.setattr(Path, 'is_dir', lambda _: True)
     monkeypatch.setattr(Path, 'home', lambda: Path('/home/homu'))
-    d = config.xdg_dirs('TEST', 'testing', [Path('/etc/testing')])
+    d = config.Dirs().add_xdg_dirs('TEST', 'testing', [Path('/etc/testing')])
     assert d == [Path('/home/homu/testing'), Path('/etc/testing')]
-
-def test_xdg_config(monkeypatch):
-    monkeypatch.setattr(Path, 'is_dir', lambda _: True)
-    monkeypatch.setattr(Path, 'exists', lambda _: True)
-    monkeypatch.setenv('XDG_CONFIG_HOME', '/home/homu/.config')
-    monkeypatch.setenv('XDG_CONFIG_DIRS', '')
-    p = config.xdg_config('testing.toml')
-    assert p == Path('/home/homu/.config/testing.toml')
-
-def test_read_configs(monkeypatch):
-    f = io.BytesIO(b'[options]\nencoder = "v0"\n')
-    monkeypatch.setattr(Path, 'open', lambda *_: f)
-    d = config.read_cmd_configs('test', [])
-    assert d == {'options': {'encoder': 'v0'}}
-
-def test_read_configs_args(monkeypatch):
-    f = io.BytesIO(b'[option]\nencoder = "v0"\n')
-    monkeypatch.setattr(Path, 'is_dir', lambda _: False)
-    monkeypatch.setattr(Path, 'open', lambda *_: f)
-    d = config.read_cmd_configs('test', ['meh'])
-    assert d == {'option': {'encoder': 'v0'}}
 
 def test_merge_options(monkeypatch):
     option = {'a': 1, 'b': 2}
@@ -150,17 +115,15 @@ def test_rccamo(monkeypatch):
     assert options == {'encoder': 'v0', 'a': 1, 'b': 22, 'c': 30}
     assert c == {'option': options}
 
-def test_read_configs_bad_toml(monkeypatch, caplog):
+def test_read_bad_toml(monkeypatch, caplog):
     f = io.BytesIO(b'wtf!')
     monkeypatch.setattr(Path, 'open', lambda *_: f)
-    d = config.read_cmd_configs('test', [])
-    assert d == {}
+    d = config.read_toml_config('vlju.toml')
+    assert d is None
     assert 'vlju.toml:' in caplog.record_tuples[0][2]
 
-def test_read_configs_args_bad_toml(monkeypatch, caplog):
-    f = io.BytesIO(b'wtf!')
-    monkeypatch.setattr(Path, 'is_dir', lambda _: False)
+def test_read_configs_no_toml(monkeypatch):
+    f = io.BytesIO()
     monkeypatch.setattr(Path, 'open', lambda *_: f)
-    d = config.read_cmd_configs('test', ['meh'])
+    d = config.read_configs(['vlju.toml'])
     assert d == {}
-    assert 'meh:' in caplog.record_tuples[0][2]

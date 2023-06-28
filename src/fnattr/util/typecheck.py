@@ -13,7 +13,7 @@ def istype(value, *args) -> bool:   # noqa: ANN001
             return True
     return False
 
-def needtype(value: Any, *args: type[T]) -> T:  # noqa: any-type
+def needtype(value: Any, *args: type[T] | None) -> T:  # noqa: any-type
     if istype(value, *args):
         return value
     raise TypeError((value, args))

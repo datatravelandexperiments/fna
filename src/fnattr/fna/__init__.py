@@ -90,7 +90,7 @@ def main(argv: list[str] | None = None) -> int:
         help='Part of a subcommand, or an expression or statement.')
     args = parser.parse_args(argv[1 :])
 
-    log.level(cmd, args.log_level)
+    fnattr.util.log.level(cmd, args.log_level)
 
     config, options = fnattr.util.config.read_cmd_configs_and_merge_options(
         cmd,

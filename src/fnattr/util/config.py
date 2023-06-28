@@ -7,7 +7,7 @@ import logging
 import os
 import tomllib
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Generator, Iterable, Mapping
 from pathlib import Path
 from typing import Any, Self
 
@@ -51,36 +51,34 @@ class Dirs(list[Path]):
                     self.append(p)
         return self
 
-    def find_first(self, p: Path | str) -> Path | None:
-        """Return the first matching file in the directory list."""
-        for i in self:
-            d = i / p
-            if d.exists():
-                return d
-        return None
-
-def xdg_dirs(name: str,
-             default_dir: str,
-             default_paths: list[Path],
-             home: Path | None = None) -> Dirs:
-    """Obtain a list of XDG directories of the given kind."""
-    if home is None:
-        with contextlib.suppress(RuntimeError):
-            home = Path.home()
-
-    default_path = None if home is None else home / default_dir
-    d = Dirs()
-    d.add_env_dir(f'XDG_{name}_HOME', default_path)
-    d.add_env_dirs(f'XDG_{name}_DIRS', default_paths)
-    return d
+    def add_xdg_dirs(self,
+                     name: str,
+                     default_dir: str,
+                     default_paths: list[Path],
+                     home: Path | None = None) -> Self:
+        """Obtain a list of XDG directories of the given kind."""
+        if home is None:
+            with contextlib.suppress(RuntimeError):
+                home = Path.home()
+        default_path = None if home is None else home / default_dir
+        self.add_env_dir(f'XDG_{name}_HOME', default_path)
+        self.add_env_dirs(f'XDG_{name}_DIRS', default_paths)
+        return self
 
 def xdg_config_dirs() -> Dirs:
-    return xdg_dirs('CONFIG', '.config', [Path('/etc/xdg')])
+    return Dirs().add_xdg_dirs('CONFIG', '.config', [Path('/etc/xdg')])
 
-def xdg_config(filename: Path | str) -> Path | None:
-    return xdg_config_dirs().find_first(filename)
+def find_file_in_dirs(file: Path | str,
+                      dirs: Iterable[Path]) -> Generator[Path, None, None]:
+    for i in dirs:
+        d = i / file
+        exists = d.exists()
+        logging.debug('%s config: %s', 'found' if exists else 'tried', d)
+        if exists:
+            yield d
 
 def read_toml_config(file: Path | str) -> dict | None:
+    logging.debug('using config: %s', file)
     with Path(file).open('rb') as f:
         try:
             return tomllib.load(f)
@@ -95,24 +93,14 @@ def read_configs(args: Iterable[Path | str]) -> dict:
             nested.nupdate(config, c)
     return config
 
-def read_xdg_configs(files: Iterable[Path]) -> dict:
-    config: dict[str, Any] = {}
-    for file in files:
-        if (cf := xdg_config(file)) and (c := read_toml_config(cf)):
-            nested.nupdate(config, c)
-    return config
-
-def read_cmd_configs(cmds: str | Iterable[str],
-                     config_files: Iterable[Path | str]) -> dict:
-    paths = []
+def cmd_config_files(cmds: str | Iterable[str]) -> list[Path]:
+    files = []
+    dirs = xdg_config_dirs()
     names = ['vlju', cmds] if isinstance(cmds, str) else ['vlju', *cmds]
-    for i in names:
-        paths.append(Path(f'{i}.toml'))
-        paths.append(Path(f'fnattr/{i}.toml'))
-    config = read_xdg_configs(paths)
-    if config_files:
-        nested.nupdate(config, read_configs(config_files))
-    return config
+    for name in names:
+        for file in find_file_in_dirs(Path(f'fnattr/{name}.toml'), dirs):
+            files.append(file)
+    return files
 
 def merge_options(options: dict[str, Any] | None, args: argparse.Namespace,
                   **kwargs) -> dict[str, Any]:
@@ -131,6 +119,6 @@ def read_cmd_configs_and_merge_options(cmds: str | Iterable[str],
                                        config_files: Iterable[Path | str],
                                        args: argparse.Namespace,
                                        **kwargs) -> tuple[dict, dict]:
-    config = read_cmd_configs(cmds, config_files)
+    config = read_configs(cmd_config_files(cmds) + list(config_files or []))
     options = merge_options(config.get('option'), args, **kwargs)
     return config, options

@@ -2,12 +2,25 @@
 
 Configuration files are in [TOML](https://toml.io/) form.
 
-## Default configuration files
+## Files
 
-Unless otherwise directed by a command line option,
-`fna` tries to read `fnattr/vlju.toml` and/or `fnattr/fna.toml`
-under XDG locations (e.g. `$XDG_CONFIG_HOME/` or `$HOME/.config/`).
-The former — `vlju.toml` — is shared by all tools
+`fna` first tries to read fixed configuration files,
+and then any files named by `--config` command line options, in order.
+Later files override earlier ones.
+
+For fixed configuration files, `fna` follows
+[XDG conventions](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html).
+The highest priority location is `$XDG_CONFIG_HOME`,
+or if that is not set, `$HOME/.config`.
+Next are the directories given by `$XDG_CONFIG_DIRS`,
+or if that is not set, `/etc/xdg`.
+(If configuration files are present in multiple such locations,
+they are read in the opposite order, so that the first listed has priority.)
+
+`fna` first reads any `fnattr/vlju.toml` in those locations,
+and then any `fnattr/fna.toml`.
+(For clarity, _all_ of the former will be read before _any_ of the latter.)
+The former — `vlju.toml` — is shared by all tools
 using the Vlju library; the latter applies only to the `fna` command.
 
 ## Sections
