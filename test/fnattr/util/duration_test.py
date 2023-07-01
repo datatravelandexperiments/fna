@@ -76,7 +76,7 @@ def test_duration_from_timedelta():
     d = Duration.from_timedelta(datetime.timedelta(microseconds=us))
     assert d.to_nanoseconds() == 1000 * us
 
-# yapf: disable
+# fmt: off
 STR_CASES = [
     ('ns',                   'string',                'fmt'                 ),
     ( dhmsn(2, 3, 4, 5, 6),  '2:03:04:05.000000006',  '2d03h04m05s000000006'),
@@ -93,7 +93,7 @@ STR_CASES = [
     (-dhmsn(2, 3, 4, 5, 6), '-2:03:04:05.000000006', '-2d03h04m05s000000006'),
     (-dns(s=2, ns=345678912),        '-2.345678912',          '-2s345678912'),
 ]
-# yapf: enable
+# fmt: on
 
 @pytest.mark.parametrize(*it2p(STR_CASES, ('ns', 'string')))
 def test_duration_str(ns, string):
@@ -104,7 +104,7 @@ def test_duration_fmt(ns, fmt):
     d = Duration(nanoseconds=ns)
     assert d.fmt() == fmt
 
-# yapf: disable
+# fmt: off
 PARSE_CASES = [
     ('string',                  'ns'),
     ('123 days 5′ 10.3″',       dns(d=123, m=5, s=10.3)),
@@ -122,13 +122,13 @@ PARSE_CASES = [
     ('1d 23 59 59s',            dns(d=1, h=23, m=59, s=59)),
     (' 1 day 14 µs ',           dns(d=1, ns=14000)),
 ]
-# yapf: enable
+# fmt: on
 
 @pytest.mark.parametrize(*it2p(PARSE_CASES))
 def test_duration_parse(string, ns):
     assert Duration.parse(string).to_nanoseconds() == ns
 
-# yapf: disable
+# fmt: off
 BAD_PARSE_CASES = [
     ('string',                  'match'),
     ('',                        'not a number'),
@@ -145,7 +145,7 @@ BAD_PARSE_CASES = [
     ('12 mikkrosekkundz',       'not a unit'),
     ('5 7us',                   'ambiguous'),
 ]
-# yapf: enable
+# fmt: on
 
 @pytest.mark.parametrize(*it2p(BAD_PARSE_CASES))
 def test_duration_parse_error(string, match):

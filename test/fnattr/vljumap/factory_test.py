@@ -15,7 +15,7 @@ from fnattr.vljumap.factory import (
     MappedFactory,
 )
 
-# yapf: disable
+# fmt: off
 CASES = [
     ('key',     'cls',  'value'),
     ('ean13',   EAN13,  '4534530128942'),
@@ -23,7 +23,7 @@ CASES = [
     ('ismn',    ISMN,   '9790692006282'),
     ('issn',    ISSN,   '9771351538009'),
 ]
-# yapf: enable
+# fmt: on
 
 @pytest.fixture(name='factory')
 def fixture_mapped_factory():

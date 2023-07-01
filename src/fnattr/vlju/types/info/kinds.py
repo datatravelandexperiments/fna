@@ -6,7 +6,7 @@
 import fnattr.vlju.types.doi
 import fnattr.vlju.types.lccn
 
-# yapf: disable
+# fmt: off
 KIND = {
     'ark':                  None,
     'arxiv':                None,
@@ -38,9 +38,9 @@ KIND = {
     'srw':                  None,
     'ugent-repo':           None,
 }
-# yapf: enable
+# fmt: on
 
-# yapf: disable
+# fmt: off
 ORGANIZATION = {
     'ark':          'Archival Resource Keys',
     'arxiv':        'arXiv.org identifiers',
@@ -72,4 +72,4 @@ ORGANIZATION = {
     'srw':          'Search/Retrieve Web Services',
     'ugent-repo':   'University Library Ghent',
 }
-# yapf: enable
+# fmt: on

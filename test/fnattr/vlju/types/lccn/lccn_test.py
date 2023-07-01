@@ -7,7 +7,7 @@ from fnattr.vlju.types.lccn import LCCN, normalize
 from fnattr.vlju.types.uri import URI
 from fnattr.vlju.types.url import URL
 
-# yapf: disable
+# fmt: off
 CASES = [
     ('n78-890351',          'n78890351'),
     ('n78-89035',           'n78089035'),
@@ -18,7 +18,7 @@ CASES = [
     ('75-425165//r75',      '75425165'),
     (' 79139101 /AC/r932',  '79139101'),
 ]
-# yapf: enable
+# fmt: on
 
 @pytest.mark.parametrize(('s', 't'), CASES)
 def test_normalize(s, t):

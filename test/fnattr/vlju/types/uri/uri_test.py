@@ -13,7 +13,7 @@ from fnattr.vlju import Vlju
 from fnattr.vlju.types.uri import URI, Authority
 from fnattr.vlju.types.url import URL
 
-# yapf: disable
+# fmt: off
 AUTHORITY_CASES = [
     ('host',          'port',   'user', 'pw',       'auth'),
     ('example.com',   None,     None,    None,      'example.com'),
@@ -22,7 +22,7 @@ AUTHORITY_CASES = [
     ('example.org',   None,     'user',  'pass',    'user:pass@example.org'),
     ('example.org',   8080,     'u',     'p',       'u:p@example.org:8080'),
 ]
-# yapf: enable
+# fmt: on
 
 @pytest.mark.parametrize(*it2p(AUTHORITY_CASES))
 def test_authority_composition(host, port, user, pw, auth):

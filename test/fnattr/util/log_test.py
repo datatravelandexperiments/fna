@@ -12,7 +12,7 @@ def test_choices():
     s = frozenset(log.CHOICES) & choices
     assert s == choices
 
-# yapf: disable
+# fmt: off
 LEVEL_CASES = [
     {'name': 'critical',    'level': logging.CRITICAL},
     {'name': 'error',       'level': logging.ERROR},
@@ -20,7 +20,7 @@ LEVEL_CASES = [
     {'name': 'info',        'level': logging.INFO},
     {'name': 'debug',       'level': logging.DEBUG},
 ]
-# yapf: enable
+# fmt: on
 
 @pytest.mark.parametrize(*pytestutil.im2p(LEVEL_CASES))
 def test_level_name(level, name):

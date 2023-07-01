@@ -9,7 +9,7 @@ from fnattr.vlju.types.ean.ismn import ISMN
 from fnattr.vlju.types.ean.issn import ISSN
 from fnattr.vlju.types.uri import URI
 
-# yapf: disable
+# fmt: off
 CASES = [
     # SBN
     ('8044-2957-X',         'isbn',     ISBN,   '9780804429573'),
@@ -32,7 +32,7 @@ CASES = [
     # EAN-13
     ('453-453012894-2',     'ean13',    EAN13,  '4534530128942'),
 ]
-# yapf: enable
+# fmt: on
 
 @pytest.mark.parametrize(('i', 'out'), ((i, out) for i, key, cls, out in CASES))
 def test_is_valid_ean13(i, out):

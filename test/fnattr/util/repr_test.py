@@ -20,7 +20,7 @@ def mkrepr_object():
         t[c] = c.upper()
     return t
 
-# yapf: disable
+# fmt: off
 CASES_MKREPR = [
     ('pos',     'kws',  'defaults',             'expect'),
     # ---        ---     --------                ------
@@ -33,7 +33,7 @@ CASES_MKREPR = [
     ('ab',      'cd',   {'c': 'C'},             "T('A','B',d='D')"),
     ('ab',      'cd',   {'a': 'A', 'c': 'C'},   "T(b='B',d='D')"),
 ]
-# yapf: enable
+# fmt: on
 
 @pytest.mark.parametrize(*it2p(CASES_MKREPR))
 def test_mkrepr(test_mkrepr_object, pos, kws, defaults, expect):

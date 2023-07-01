@@ -6,12 +6,12 @@ import pytest
 from fnattr.vlju.types.ean.ismn import ISMN
 from fnattr.vlju.types.uri import URI
 
-# yapf: disable
+# fmt: off
 CASES = [
     ('M692006282', '9790692006282'),
     ('M345246805', '9790345246805'),
 ]
-# yapf: enable
+# fmt: on
 
 NOT_ISMN_CASES = ['9780127450407', 'Not an ISMN']
 

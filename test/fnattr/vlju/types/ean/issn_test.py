@@ -6,12 +6,12 @@ import pytest
 from fnattr.vlju.types.ean.issn import ISSN
 from fnattr.vlju.types.uri import URI
 
-# yapf: disable
+# fmt: off
 CASES = [
     ('13515381', '9771351538009', '1351-5381', '977-1351-538-00-9'),
     ('10962905', '9771096290002', '1096-2905', '977-1096-290-00-2'),
 ]
-# yapf: enable
+# fmt: on
 
 NOT_ISSN_CASES = ['9780127450407', 'Not an ISSN']
 

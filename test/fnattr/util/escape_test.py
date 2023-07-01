@@ -7,7 +7,7 @@ import fnattr.util.escape as e
 
 from fnattr.util.pytestutil import it2p
 
-# yapf: disable
+# fmt: off
 CASES = [
     ('name',     'esc',      'raw',          'escaped'),
     ('auth',     e.auth,     " !\"#$%&'",    "%20!%22%23$%25&'"),
@@ -50,7 +50,7 @@ CASES = [
     ('sh',       e.sh,       '%+,-./0',      '%+,-./0'),
     ('sh',       e.sh,       ':=@A_a',       ':=@A_a'),
 ]
-# yapf: enable
+# fmt: on
 
 @pytest.mark.parametrize(*it2p(CASES))
 def test_escapes(name, esc, raw, escaped):

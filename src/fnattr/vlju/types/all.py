@@ -15,7 +15,7 @@ from fnattr.vlju.types.uri import URI
 from fnattr.vlju.types.url import URL
 from fnattr.vlju.types.urn import URN
 
-# yapf: disable
+# fmt: off
 VLJU_TYPES: dict[str, type[Vlju]] = {
     'doi':      DOI,
     'ean':      EAN13,
@@ -30,4 +30,4 @@ VLJU_TYPES: dict[str, type[Vlju]] = {
     'url':      URL,
     'urn':      URN,
 }
-# yapf: enable
+# fmt: on
