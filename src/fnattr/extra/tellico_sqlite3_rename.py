@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from fnattr.util import log
 from fnattr.util.config import read_cmd_configs_and_merge_options
 from fnattr.util.sqlite import SQLite
 from fnattr.vlju.types.all import DOI
@@ -227,8 +228,8 @@ def main(argv):
         '-L',
         metavar='LEVEL',
         type=str,
-        choices=[c for c in logging.getLevelNamesMapping() if c != 'NOTSET'],
-        default='INFO')
+        choices=log.CHOICES,
+        default=log.level_name(logging.INFO))
     parser.add_argument('--sha', action='store_true', help='Print SHA1 only.')
     parser.add_argument(
         '--the',
@@ -243,10 +244,7 @@ def main(argv):
         help='Files to rename',
     )
     args = parser.parse_args(argv[1 :])
-
-    logging.basicConfig(
-        level=getattr(logging, args.log_level.upper()),
-        format=f'{cmd}: %(levelname)s: %(message)s')
+    log.config(cmd, args)
 
     _config, options = read_cmd_configs_and_merge_options(
         cmd,

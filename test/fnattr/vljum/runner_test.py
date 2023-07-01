@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+import fnattr.util.pytestutil
 import fnattr.vljum.m
 import fnattr.vljum.runner
 
@@ -159,24 +160,14 @@ def test_runner_command_remove():
     r.runs('remove y Why')
     assert r.m.encode() == '[x=2; x=1; z=Z; z=Y]'
 
-def mk_mock_rename():
-    d = {}
-
-    def mock(self, target):
-        d['src'] = self
-        d['dst'] = target
-        return target
-
-    return (mock, d)
-
 def test_runner_command_rename(monkeypatch):
     r = mk(args=['decoder', 'sfc', 'file', D1SFC, 'order', 'a,isbn,edition'])
-    mock_rename, result = mk_mock_rename()
+    mock_rename, result = fnattr.util.pytestutil.make_fixed()
     monkeypatch.setattr(Path, 'rename', mock_rename)
-    monkeypatch.setattr(Path, 'mkdir', lambda _, **_kw: True)
+    monkeypatch.setattr(Path, 'mkdir', fnattr.util.pytestutil.fake_fixed())
     r.runs('rename')
-    assert result['src'] == Path(D1SFC)
-    assert result['dst'] == Path(D1V3)
+    assert result[0].args[0] == Path(D1SFC)
+    assert result[0].args[1] == Path(D1V3)
 
 def test_runner_command_rename_exists(monkeypatch):
     r = mk(args=['file', D1V3, 'quiet'])

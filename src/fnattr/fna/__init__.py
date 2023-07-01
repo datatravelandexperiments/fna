@@ -7,6 +7,7 @@ import pathlib
 import sys
 
 import fnattr.util.config
+import fnattr.util.error
 import fnattr.util.io
 import fnattr.util.log
 import fnattr.vljum.m
@@ -14,8 +15,8 @@ import fnattr.vljum.runner
 import fnattr.vljumap.enc
 
 def main(argv: list[str] | None = None) -> int:
-    if argv is None:
-        argv = sys.argv
+    if argv is None:        # pragma: no branch
+        argv = sys.argv     # pragma: no cover
     cmd = pathlib.Path(argv[0]).stem
     parser = argparse.ArgumentParser(
         prog=cmd,
@@ -30,6 +31,12 @@ def main(argv: list[str] | None = None) -> int:
         type=str,
         action='append',
         help='Configuration file.')
+    parser.add_argument(
+        '--no-default-config',
+        dest='default_config',
+        action='store_false',
+        default=True,
+        help='Read default configuration files.')
     parser.add_argument(
         '--decoder',
         '-d',
@@ -50,7 +57,7 @@ def main(argv: list[str] | None = None) -> int:
         metavar='LEVEL',
         type=str,
         choices=fnattr.util.log.CHOICES,
-        default='WARNING')
+        default=fnattr.util.log.level_name(logging.WARNING))
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument(
         '--dsl',
@@ -90,7 +97,7 @@ def main(argv: list[str] | None = None) -> int:
         help='Part of a subcommand, or an expression or statement.')
     args = parser.parse_args(argv[1 :])
 
-    fnattr.util.log.level(cmd, args.log_level)
+    log_level = fnattr.util.log.config(cmd, args)
 
     config, options = fnattr.util.config.read_cmd_configs_and_merge_options(
         cmd,
@@ -118,14 +125,18 @@ def main(argv: list[str] | None = None) -> int:
                 for i in args.argument:
                     with fnattr.util.io.open_input(i) as f:
                         fnattr.vljum.m.M.execute(f.read())
-            case _:
+            case _:  # pragma: no cover
                 logging.error('Unknown mode: %s', args.mode)
+    except fnattr.util.error.Error as e:
+        logging.error(e)
+        return 1
     except Exception as e:
         logging.error('Unhandled exception: %s%s', type(e).__name__, e.args)
-        if logging.getLogger().getEffectiveLevel() < logging.INFO:
+        if log_level < logging.INFO:
             raise
+        return 2
 
     return 0
 
-if __name__ == '__main__':
-    sys.exit(main())
+if __name__ == '__main__':  # pramga: no branch
+    sys.exit(main())        # pragma: no cover

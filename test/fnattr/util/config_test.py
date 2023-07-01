@@ -6,6 +6,7 @@ import io
 
 from pathlib import Path
 
+import fnattr.util.pytestutil
 from fnattr.util import config
 
 def test_add_env_dir_environ(monkeypatch):
@@ -33,8 +34,13 @@ def test_add_env_dir_default_false(monkeypatch):
     assert d == []
 
 def test_add_env_dirs_environ(monkeypatch):
-    monkeypatch.setattr(Path, 'is_dir', lambda x: str(x)[1].islower())
     monkeypatch.setenv('EVaR', '/a/b:/c/d:/E/F')
+    monkeypatch.setattr(
+        Path, 'is_dir',
+        fnattr.util.pytestutil.fake_str0mapped({
+            '/a/b': True,
+            '/c/d': True,
+        }, False))
     d = config.Dirs().add_env_dirs('EVaR', [])
     assert d == [Path('/a/b'), Path('/c/d')]
 
@@ -94,14 +100,14 @@ def test_xdg_dirs_defaults(monkeypatch):
     d = config.Dirs().add_xdg_dirs('TEST', 'testing', [Path('/etc/testing')])
     assert d == [Path('/home/homu/testing'), Path('/etc/testing')]
 
-def test_merge_options(monkeypatch):
+def test_merge_options():
     option = {'a': 1, 'b': 2}
     args = argparse.Namespace(a=None, b=22, c=None, config=None)
     d = config.merge_options(
         option, args, a={'default': 10}, b={'default': 20}, c={'default': 30})
     assert d == {'a': 1, 'b': 22, 'c': 30}
 
-def test_merge_options_none(monkeypatch):
+def test_merge_options_none():
     args = argparse.Namespace(a=None, b=22, c=None, config=None)
     d = config.merge_options(None, args, a=10, b=20, c=30)
     assert d == {'a': 10, 'b': 22, 'c': 30}

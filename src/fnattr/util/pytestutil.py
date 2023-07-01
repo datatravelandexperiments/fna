@@ -1,7 +1,11 @@
 # SPDX-License-Identifier: MIT
 """Utilities for testing."""
 
-from collections.abc import Iterable, Iterator, Mapping, Sequence
+import io
+
+from collections.abc import Callable, Iterable, Iterator, Mapping, Sequence
+from dataclasses import dataclass
+from typing import Any
 
 def im2p(cases: Iterable[Mapping],
          keys: Sequence[str] | None = None) -> tuple[str, list]:
@@ -28,3 +32,35 @@ def _2p(it: Iterator, keys: Sequence[str],
     else:
         r = [tuple(i[index] for index in indices) for i in it]
     return (','.join(keys), r)
+
+def stringio(initial_value: str = '') -> io.StringIO:
+    s = io.StringIO(initial_value)
+    s.close = lambda: None
+    return s
+
+@dataclass
+class Arguments:
+    """Record of fake function arguments."""
+
+    args: tuple
+    kwargs: dict[str, Any]
+
+Fakery = tuple[Callable, list[Arguments]]
+
+def make_str0mapped(d: Mapping, default: Any | None = None) -> Fakery:
+    record: list[Arguments] = []
+
+    def fake(*args, **kwargs) -> Any | None:
+        record.append(Arguments(args, kwargs))
+        return d.get(str(args[0]), default) if args else default
+
+    return fake, record
+
+def fake_str0mapped(d: Mapping, default: Any | None = None) -> Callable:
+    return make_str0mapped(d, default)[0]
+
+def make_fixed(default: Any | None = None) -> tuple[Callable, list]:
+    return make_str0mapped({}, default)
+
+def fake_fixed(default: Any | None = None) -> Callable:
+    return make_fixed(default)[0]

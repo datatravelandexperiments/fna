@@ -254,7 +254,7 @@ def run(argv: list[str] | None = None) -> int:
         metavar='LEVEL',
         type=str,
         choices=log.CHOICES,
-        default='WARNING')
+        default=log.level_name(logging.WARNING))
     parser.add_argument(
         'file',
         metavar='FILENAME',
@@ -263,7 +263,7 @@ def run(argv: list[str] | None = None) -> int:
         default=[],
         help='File name(s).')
     args = parser.parse_args(argv[1 :])
-    log.level(cmd, args.log_level, dryrun=args.dryrun)
+    log_level = log.config(cmd, args)
     config, options = read_cmd_configs_and_merge_options(
         cmd, args.config, args, decoder='v3')
     M.configure_options(options)
@@ -284,9 +284,9 @@ def main(argv: list[str] | None = None) -> int:
         return run(argv)
     except Exception as e:
         logging.error('Unhandled exception: %s%s', type(e).__name__, e.args)
-        if logging.getLogger().getEffectiveLevel() < logging.INFO:
+        if log_level < logging.INFO:
             raise
-        return 1
+        return 2
 
 if __name__ == '__main__':
     sys.exit(main())

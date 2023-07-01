@@ -10,6 +10,8 @@ from pathlib import Path
 
 import pytest
 
+import fnattr.util.pytestutil
+
 from fnattr.util.error import Error
 from fnattr.util.registry import Registry
 from fnattr.vlju.testutil import CastParams
@@ -201,24 +203,14 @@ def test_m_rename(monkeypatch):
     m = M().file(p)
     assert m.original() == p
 
-    def mk_mock_rename():
-        d = {}
-
-        def mock(self, target):
-            d['src'] = self
-            d['dst'] = target
-            return target
-
-        return (mock, d)
-
-    mock_rename, result = mk_mock_rename()
+    mock_rename, result = fnattr.util.pytestutil.make_fixed()
     monkeypatch.setattr(Path, 'rename', mock_rename)
 
     m.with_dir('/home/sfc').with_suffix('jpg').add('title', 'Title')
     m.rename(mkdir=False)
     assert m.original() == q
-    assert result['src'] == p
-    assert result['dst'] == q
+    assert result[0].args[0] == p
+    assert result[0].args[1] == q
 
 def test_m_rename_no_original():
     m = M()
@@ -242,22 +234,13 @@ def test_m_rename_exists_dedup_differ(monkeypatch):
 
 def test_m_rename_exists_dedup_same(monkeypatch):
     m = M().file('/etc/passwd')
-
-    def mk_mock_unlink():
-        d = {}
-
-        def mock(self):
-            d['src'] = self
-
-        return (mock, d)
-
-    mock_unlink, unlinked = mk_mock_unlink()
+    mock_unlink, unlinked = fnattr.util.pytestutil.make_fixed()
     monkeypatch.setattr(Path, 'exists', lambda _: True)
     monkeypatch.setattr(Path, 'samefile', lambda _1, _2: False)
     monkeypatch.setattr(Path, 'unlink', mock_unlink)
     monkeypatch.setattr(filecmp, 'cmp', lambda _1, _2, **_kw: True)
     m.rename(dedup=True)
-    assert str(unlinked['src']) == '/etc/passwd'
+    assert str(unlinked[0].args[0]) == '/etc/passwd'
 
 def test_m_rename_samefile(monkeypatch):
     m = M().file('/etc/passwd')
@@ -265,7 +248,7 @@ def test_m_rename_samefile(monkeypatch):
     monkeypatch.setattr(Path, 'samefile', lambda _1, _2: True)
     m.rename()
 
-def test_m_rename_dryrun(monkeypatch):
+def test_m_rename_dryrun():
     m = M().file('/etc/passwd')
     m.rename(dryrun=True)
 

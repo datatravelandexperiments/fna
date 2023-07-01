@@ -119,6 +119,10 @@ def read_cmd_configs_and_merge_options(cmds: str | Iterable[str],
                                        config_files: Iterable[Path | str],
                                        args: argparse.Namespace,
                                        **kwargs) -> tuple[dict, dict]:
-    config = read_configs(cmd_config_files(cmds) + list(config_files or []))
+    if getattr(args, 'default_config', True):
+        files = cmd_config_files(cmds)
+    else:
+        files = []
+    config = read_configs(files + list(config_files or []))
     options = merge_options(config.get('option'), args, **kwargs)
     return config, options
