@@ -182,6 +182,11 @@ def run(argv: list[str] | None = None) -> int:
         m = M()
         if args.merge:
             m.file(file)
+            # If there are no fna attributes in the file name, the file name
+            # becomes the `title` attribute, but we don't want that to persist
+            # in the destination file name.
+            if len(m) == 1 and 'title' in m.keys():
+                del m['title']
         else:
             m.set_path(file)
         if args.md5:
