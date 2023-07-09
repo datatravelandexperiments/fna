@@ -215,7 +215,7 @@ def rename(m: M, *, dryrun: bool = False) -> bool:
         return False
     return True
 
-def run(argv: list[str] | None = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     if argv is None:
         argv = sys.argv
     cmd = Path(argv[0]).stem
@@ -269,24 +269,22 @@ def run(argv: list[str] | None = None) -> int:
     M.configure_options(options)
     #   M.configure_sites(config.get('site', {}))
 
-    d = Destinations.from_config(config)
-    for file in args.file:
-        m = M().file(file)
-        if not (dst := d.match(m)):
-            logging.info('no match: %s', file)
-            continue
-        rename(m.with_dir(dst), dryrun=args.dryrun)
-
-    return 0
-
-def main(argv: list[str] | None = None) -> int:
     try:
-        return run(argv)
+        d = Destinations.from_config(config)
+        for file in args.file:
+            m = M().file(file)
+            if not (dst := d.match(m)):
+                logging.info('no match: %s', file)
+                continue
+            rename(m.with_dir(dst), dryrun=args.dryrun)
+
     except Exception as e:
         logging.error('Unhandled exception: %s%s', type(e).__name__, e.args)
         if log_level < logging.INFO:
             raise
         return 2
+
+    return 0
 
 if __name__ == '__main__':
     sys.exit(main())
