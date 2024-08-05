@@ -10,13 +10,13 @@ import pytest
 from fnattr.util.config import read_toml_config
 from fnattr.util.error import Error
 from fnattr.util.pytestutil import im2p
-from fnattr.vlju.types.site import site_class
+from fnattr.vlju.types.site import site_class_from_properties
 from fnattr.vlju.types.url import URL
 
 config = read_toml_config(pathlib.Path('config/vlju.toml'))
 assert config
-for _, v in config['site'].items():
-    globals()[v['name']] = site_class(**v)
+for k, v in config['site'].items():
+    globals()[v['name']] = site_class_from_properties(k, v)
 
 CASES = [
     {

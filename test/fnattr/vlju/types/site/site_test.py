@@ -1,7 +1,17 @@
 # SPDX-License-Identifier: MIT
 """Test SiteBase and site_class()."""
 
-from fnattr.vlju.types.site import SiteBase, site_class
+# Assigning to class-typed variables:
+# ruff: noqa: N806
+
+import pytest
+
+from fnattr.util.error import Error
+from fnattr.vlju.types.site import (
+    SiteBase,
+    site_class,
+    site_class_from_properties,
+)
 from fnattr.vlju.types.uri import Authority
 
 class SiteA(SiteBase):
@@ -52,3 +62,31 @@ def test_site_class():
         normalize="{x.replace('_', ',')}")
     e0 = SiteE('foo_bar_baz')
     assert e0.lv() == 'https://example.com/foo?bar#baz'
+
+def test_site_class_from_properties():
+    SiteC = site_class_from_properties(  # noqa: N806
+        'sitec', {
+            'name': 'SiteC',
+            'host': 'example.com',
+            'path': 'item/{x}',
+        })
+    c0 = SiteC('000')
+    c1 = SiteC('111')
+    assert c0.lv() == 'https://example.com/item/000'
+    assert c1.lv() == 'https://example.com/item/111'
+
+def test_site_class_from_properties_missing_property():
+    required = ['name', 'host', 'path']
+    d = {
+        'name': 'SiteC',
+        'host': 'example.com',
+        'path': 'item/{x}',
+    }
+    for p in required:
+        with pytest.raises(Error):
+            _ = site_class_from_properties(
+                'sitec', {
+                    k: v
+                    for k, v in d.items()
+                    if k != p
+                })

@@ -2,6 +2,15 @@
 decoder = 'v3'
 encoder = 'v3'
 
+[site.bsky]
+name = 'Bluesky'
+host = 'bsky.app'
+path = [
+'/profile/',
+'{ids[0]}{".bsky.social" if "." not in ids[0] else ""}',
+'/post/{ids[1]}',
+]
+
 [site.dan]
 name = 'Danbooru'
 host = 'danbooru.donmai.us'
@@ -47,7 +56,7 @@ url = ['https?://chan\.sankakucomplex\.com/post/show/(\d+)']
 name = 'Twitter'
 host = 'twitter.com'
 path = [
-    '{"/status/".join(id.split(",")[:2]) if "," in id',
+    '{"/status/".join(ids[:2]) if idn > 1',
     ' else f"i/web/status/{id}"}'
 ]
 url = [

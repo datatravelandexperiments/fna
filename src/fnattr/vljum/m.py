@@ -3,11 +3,11 @@
 
 from collections.abc import Callable, Mapping
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 from fnattr.util.registry import Registry
 from fnattr.vlju.types.all import VLJU_TYPES, Vlju
-from fnattr.vlju.types.site import SiteBase, site_class
+from fnattr.vlju.types.site import SiteBase, site_class_from_properties
 from fnattr.vljum import VljuM
 from fnattr.vljumap import enc
 from fnattr.vljumap.factory import (
@@ -24,7 +24,7 @@ class M(VljuM):
     raw_factory = default_factory
     strict_factory = MappedFactory(VLJU_TYPES)
     loose_factory = LooseMappedFactory(VLJU_TYPES)
-    default_registry = {
+    default_registry: ClassVar = {
         'factory':
             Registry().update({
                 'raw': raw_factory,
@@ -47,7 +47,7 @@ class M(VljuM):
     @classmethod
     def configure_sites(cls, site: Mapping[str, Mapping[str, Any]]) -> None:
         for k, s in site.items():
-            scls = site_class(**s)
+            scls = site_class_from_properties(k, s)
             cls.strict_factory.setitem(k, scls)
             cls.loose_factory.setitem(k, scls)
             cls.site_classes[k] = scls

@@ -61,8 +61,12 @@ in order for the URL to be useful.
 The `path`, `query`, `fragment`, and `normalize` strings
 take the form of Python
 [f-strings](https://docs.python.org/3/reference/lexical_analysis.html#f-strings).
+
 In the `path`, `query`, and `fragment` strings,
 `id` contains the canonical representation of the attribute value.
+`ids` is a list of parts of `id` split by commas,
+and `idn` is the length of that list.
+
 In the `normalize` string, `id` is the value read.
 
 Only the following Python names are available:
