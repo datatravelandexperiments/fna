@@ -12,7 +12,7 @@ from fnattr.util import pytestutil
 
 MK_V2 = '{x=2;x=1;z=Z;z=Y;y=Why}'
 MK_V3 = '[x=2; x=1; z=Z; z=Y; y=Why]'
-F1SFC = 'What? by Paul Penman 0123456789 2nd edition 2007'
+F1SFC = 'What?, by Paul Penman, 0123456789, 2nd edition, 2007'
 F1V3 = 'What? [a=Paul Penman; isbn=9780123456786; edition=2; date=2007]'
 D1SFC = f'/home/sfc/books/{F1SFC}.pdf'
 D1V3 = f'/home/sfc/books/{F1V3}.pdf'

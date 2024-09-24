@@ -458,9 +458,9 @@ def _v0_dec_iter(s: str) -> Generator[tuple[str, str], None, None]:
     if m:
         if isbn := m.group('isbn'):
             yield ('isbn', isbn)
-        elif lccn := m.group('lccn'):   # pragma: no branch
+        elif lccn := m.group('lccn'):  # pragma: no branch
             yield ('lccn', lccn)
-        else:                           # pragma: no cover
+        else:  # pragma: no cover
             message = f'no isbn or lccn in {s}'
             raise Error(message)
 
@@ -473,7 +473,7 @@ def _v0_dec_iter(s: str) -> Generator[tuple[str, str], None, None]:
 SFC_DESC = "SFC's encoder."
 
 SFC_GRAMMAR = """
-    sfc       → sfctitle [‘ by ’ sfcauthor] [«‘ ’» (isbn | date | sfced)]*
+    sfc       → sfctitle [‘, by ’ sfcauthor] [«‘, ’» (isbn | date | sfced)]*
     sfctitle  → [title [‘ - ’ title]*]
     sfcauthor → author [‘, ’ author]*
     sfced     → edition (‘st’ | ‘nd’ | ‘rd’ | ‘th’) ‘ edition’
@@ -486,10 +486,11 @@ SFC_DESCRIPTION = """
 
   Title and optional subtitles are separated by ‘ - ’ (including the spaces).
 
-  Authors are preceded by ‘ by ’ and separated by commas.
+  Authors are preceded by ‘, by ’ and separated by commas.
 
   An ISBN may follow. A four-digit year may follow. An edition, consisting
-  of a number, a number suffix, and the word ‘edition’, may follow.
+  of a number, a number suffix, and the word ‘edition’, may follow. All these
+  are separated by commas.
 """ + SFC_GRAMMAR
 
 def sfc_encode(n: VljuMap, mode: str | None = None) -> str:
@@ -505,7 +506,7 @@ def sfc_encode(n: VljuMap, mode: str | None = None) -> str:
     else:
         edition = ''
     date = m['date'][0] if 'date' in m else ''
-    return join_non_empty(' ', title, author, isbn, edition, date)
+    return join_non_empty(', ', title, author, isbn, edition, date)
 
 def sfc_decode(n: VljuMap, s: str, factory: VljuFactory) -> VljuMap:
     return n.add_pairs(_sfc_dec_iter(s), factory)
@@ -528,6 +529,92 @@ SFC_TAIL_RE = re.compile(
         """, re.X)
 
 def _sfc_dec_iter(s: str) -> Generator[tuple[str, str], None, None]:
+    while True:
+        if m := SFC_TAIL_RE.fullmatch(s):
+            for k in ('date', 'edition'):
+                if v := m.group(k):
+                    yield (k, v)
+            s = m.group('prefix').strip()
+        elif is_valid_isbn10(s[-10 :]):
+            yield ('isbn', s[-10 :])
+            s = s[:-10].strip()
+        elif is_valid_isbn13(s[-13 :]):
+            yield ('isbn', s[-13 :])
+            s = s[:-13].strip()
+        else:
+            break
+        s = s.rstrip().rstrip(',')
+    if (by := s.rfind(', by ')) > 0:
+        authors = s[by + 5 :]
+    elif s.startswith('by '):
+        authors = s[3 :]
+        by = 0
+    else:
+        authors = None
+    if authors:
+        s = s[: by].strip()
+        a = list(map(str.strip, authors.split(',')))
+        while a:
+            if len(a) > 1 and ' ' not in a[0] and ' ' not in a[1]:
+                yield ('a', f'{a[0]}, {a[1]}')
+                a = a[2 :]
+            else:
+                yield ('a', a[0])
+                a = a[1 :]
+    if s:
+        s = s.rstrip().rstrip(',')
+        for i in s.split(' - ', 1):
+            yield ('title', escape.winfile.decode(i.strip()))
+
+SFC0_DESC = "SFC0's encoder."
+
+SFC0_GRAMMAR = """
+    sfc0       → sfc0title [‘ by ’ sfc0author] [«‘ ’» (isbn | date | sfc0ed)]*
+    sfc0title  → [title [‘ - ’ title]*]
+    sfc0author → author [‘, ’ author]*
+    sfc0ed     → edition (‘st’ | ‘nd’ | ‘rd’ | ‘th’) ‘ edition’
+    a «j» b   → (a | b | ajb)
+"""
+
+SFC0_DESCRIPTION = """
+  Encoder format sfc0 consists of a title and optional subtitles, optional
+  authors, and optional specific attributes: ISBN, year, and edition.
+
+  Title and optional subtitles are separated by ‘ - ’ (including the spaces).
+
+  Authors are preceded by ‘ by ’ and separated by commas.
+
+  An ISBN may follow. A four-digit year may follow. An edition, consisting
+  of a number, a number suffix, and the word ‘edition’, may follow.
+""" + SFC0_GRAMMAR
+
+def sfc0_encode(n: VljuMap, mode: str | None = None) -> str:
+    m = n.to_strings(mode)
+    title = ' - '.join(i for i in m['title'])
+    author = ', '.join(i for i in m['a'])
+    if author:
+        author = f'by {author}'
+    isbn = m['isbn'][0] if 'isbn' in m else ''
+    if 'edition' in m:
+        e = int(m['edition'][0])
+        edition = f'{e}{nth(e)} edition'
+    else:
+        edition = ''
+    date = m['date'][0] if 'date' in m else ''
+    return join_non_empty(' ', title, author, isbn, edition, date)
+
+def sfc0_decode(n: VljuMap, s: str, factory: VljuFactory) -> VljuMap:
+    return n.add_pairs(_sfc0_dec_iter(s), factory)
+
+sfc0 = _register_encoder(
+    Encoder(
+        'sfc0',
+        sfc0_encode,
+        sfc0_decode,
+        desc=SFC0_DESC,
+        description=SFC0_DESCRIPTION))
+
+def _sfc0_dec_iter(s: str) -> Generator[tuple[str, str], None, None]:
     while True:
         if m := SFC_TAIL_RE.fullmatch(s):
             for k in ('date', 'edition'):
