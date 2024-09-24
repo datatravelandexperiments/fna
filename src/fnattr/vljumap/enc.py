@@ -522,6 +522,7 @@ sfc = _register_encoder(
 SFC_TAIL_RE = re.compile(
     r"""
         (?P<prefix> .*)
+        \s+
         (?:
             (?P<date> [12]\d\d\d ) |
             (?: (?P<edition> \d+ ) \w*\s+edition )
@@ -534,16 +535,16 @@ def _sfc_dec_iter(s: str) -> Generator[tuple[str, str], None, None]:
             for k in ('date', 'edition'):
                 if v := m.group(k):
                     yield (k, v)
-            s = m.group('prefix').strip()
+            s = m.group('prefix')
         elif is_valid_isbn10(s[-10 :]):
             yield ('isbn', s[-10 :])
-            s = s[:-10].strip()
+            s = s[:-10]
         elif is_valid_isbn13(s[-13 :]):
             yield ('isbn', s[-13 :])
-            s = s[:-13].strip()
+            s = s[:-13]
         else:
             break
-        s = s.rstrip().rstrip(',')
+        s = s.strip().rstrip(',')
     if (by := s.rfind(', by ')) > 0:
         authors = s[by + 5 :]
     elif s.startswith('by '):
