@@ -3,7 +3,7 @@
 
 import pytest
 
-from fnattr.vlju.types.ean.isbn import ISBN
+from fnattr.vlju.types.ean.isbn import ISBN, is_valid_isbn10
 from fnattr.vlju.types.uri import URI
 
 CASES = [
@@ -77,3 +77,11 @@ def test_isbn_split_unknown():
     i._value = NOT_ISBN_CASES[0]    # noqa: SLF001
     with pytest.warns(UserWarning, match='not found'):
         assert i.split13() == NOT_ISBN_CASES[0]
+
+@pytest.mark.parametrize('s10', (c[0] for c in CASES))
+def test_is_valid_isbn10(s10):
+    assert is_valid_isbn10(s10)
+
+def test_is_valid_isbn10_invalid():
+    assert not is_valid_isbn10('a')
+    assert not is_valid_isbn10('0804429571')

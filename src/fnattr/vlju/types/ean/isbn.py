@@ -91,8 +91,8 @@ class ISBN(EAN13):
 
 def is_valid_isbn10(s: str) -> bool:
     """Check for 10-character-only form."""
-    return (len(s) == 10 and s[0 : 8].isdigit()
-            and checksum.mod11(s[0 : 8]) == s[9])
+    return (len(s) == 10 and s[0 : 9].isdigit()
+            and checksum.mod11(s[0 : 9]) == s[9])
 
 def is_valid_isbn13(s: str) -> bool:
     """Check for 13-digit-only form."""
