@@ -71,11 +71,19 @@ file name or string.
 Rename a file (three subcommands):
 
 ```
-$ fna file '/tmp/My Book.pdf' add isbn 1234567890 rename
+$ fna \
+  file '/tmp/My Book.pdf' \
+  add isbn 1234567890 \
+  rename
 ```
 
+Get a JSON representation (four subcommands):
 ```
-$ fna file '/tmp/My Book.pdf' add isbn 1234567890 json encode
+$ fna \
+  file '/tmp/My Book.pdf' \
+  add isbn 1234567890 \
+  json \
+  encode
 {"title": ["My Book"], "isbn": ["9781234567897"]}
 ```
 

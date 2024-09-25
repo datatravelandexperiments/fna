@@ -1,8 +1,8 @@
-# Coded and conventional keys
+# Coded, configured, and conventional keys
 
 ## `a`
 
-Author, Artist.
+Author, Artist. (_coded_)
 
 - Accepted values: any
 
@@ -10,25 +10,25 @@ This is handled specially by some encoders.
 
 ## `c`
 
-Character.
+Character. (_convention_)
 
 - Accepted values: any
 
 ## `ch`
 
-Chapter.
+Chapter. (_convention_)
 
 - Accepted values: any
 
 ## `cx`
 
-Character-crossover.
+Character-crossover. (_convention_)
 
 - Accepted values: any
 
 ## `dan`
 
-[Danbooru](https://danbooru.donmai.us/) item.
+[Danbooru](https://danbooru.donmai.us/) item. (_configured_)
 
 - Accepted values: numeric _id_, or long form URL.
 - Representation: _id_
@@ -39,7 +39,7 @@ but is present in the example configuration file.
 
 ## `date`
 
-Date.
+Date. (_convention_; may become _coded_)
 
 - Accepted values: any
 
@@ -47,7 +47,7 @@ This might get a class and parsing in the future.
 
 ## `doi`
 
-Document Object Identifier.
+Document Object Identifier. (_coded_)
 
 - Accepted values: [_intro_]_prefix_(`/`|`,`)_suffix_
   where _intro_ is one of:
@@ -62,13 +62,13 @@ Document Object Identifier.
 
 ## `e`
 
-Episode.
+Episode. (_convention_)
 
 - Accepted values: any
 
 ## `ean`
 
-International Article Number.
+International Article Number (_coded_).
 
 - Accepted values: EAN13 or SBN or ISBN or ISMN or ISSN or UPC-A
 - Representation: 13-digits including corrected check digit.
@@ -77,14 +77,14 @@ International Article Number.
 
 ## `file`
 
-Local file path.
+Local file path. (_coded_)
 
 - Accepted values: path
 - Class: `File`
 
 ## `gel`
 
-[Gelbooru](https://gelbooru.com/) item.
+[Gelbooru](https://gelbooru.com/) item. (_configured_)
 
 - Accepted values: numeric _id_, or long form URL.
 - Representation: _id_
@@ -95,7 +95,7 @@ but is present in the example configuration file.
 
 ## `info`
 
-‘info’ uri.
+‘info’ uri. (_coded_)
 
 - Accepted values: URI
 - Representation: URI
@@ -103,7 +103,7 @@ but is present in the example configuration file.
 
 ## `isbn`
 
-International Standard Book Number.
+International Standard Book Number. (_coded_)
 
 - Accepted values: EAN-13 in the ISBN range, ISBN, or SBN
 - Representation: ISBN
@@ -111,7 +111,7 @@ International Standard Book Number.
 
 ## `ismn`
 
-International Standard Music Number.
+International Standard Music Number. (_coded_)
 
 - Accepted values: EAN-13 in the ISMN range, or ISMN (`M` followed by 9 digits)
 - Representation: EAN-13
@@ -120,7 +120,7 @@ International Standard Music Number.
 
 ## `issn`
 
-International Standard Serial Number.
+International Standard Serial Number. (_coded_)
 
 - Accepted values: EAN-13 in the ISSN range, or ISSN
 - Representation: EAN-13
@@ -129,13 +129,13 @@ International Standard Serial Number.
 
 ## `j`
 
-Enclosing work (journal, album, etc.).
+Enclosing work (journal, album, series, etc.). (_convention_)
 
 - Accepted values: any
 
 ## `lang`
 
-Language.
+Language. (_convention_; may become _coded_)
 
 - Accepted values: any
 
@@ -143,24 +143,24 @@ Might get a class with ISO-639 interpretation in the future.
 
 ## `lccn`
 
-Library of Congress Catalog Number.
+Library of Congress Catalog Number. (_coded_)
 
 - Accepted values: LCCN
 - Class: `LCCN`
 
 ## `n`
 
-Sequence number (track, issue, etc.).
+Sequence number (track, issue, etc.). (_coded_)
 
 Handled specially by some encoders.
 
 ## `p`
 
-Page(s) in a paginated work.
+Page(s) in a paginated work (_convention_).
 
 ## `pixiv`
 
-[Pixiv](https://www.pixiv.net/) item.
+[Pixiv](https://www.pixiv.net/) item. (_configured_)
 
 - Accepted values: _id_ or _id_`_p`_item_ or long form URL
 - Representation: _id_`_p`_item_
@@ -171,7 +171,7 @@ but is present in the example configuration file.
 
 ## `sub`
 
-Subtitle language.
+Subtitle language. (_convention_; may become _coded_)
 
 - Accepted values: any
 
@@ -179,7 +179,7 @@ Might get a class with ISO-639 interpretation in the future.
 
 ## `t`
 
-Timestamp (within a work; for points in time use `date`).
+Timestamp (within a work; for points in time use `date`). (_coded_)
 
 - Accepted values: Handles many unambiguous representations.
   For example:
@@ -199,10 +199,11 @@ Timestamp (within a work; for points in time use `date`).
     - `1 day 14 µs`
 - Representation: _days_`:`_hh_`:`_mm_`:`_ss_`.`_fraction_,
   but the `.`_fraction_ and leading fields or digits are omitted if zero.
+- Class: `Timestamp`
 
 ## `tcom`
 
-Composer.
+Composer. (_convention_)
 
 - Accepted values: any
 
@@ -210,15 +211,23 @@ Named for the ID3v2 tag.
 
 ## `text`
 
-Lyricist.
+Lyricist. (_convention_)
 
 - Accepted values: any
 
 Named for the ID3v2 tag.
 
+## `tl`
+
+Translation (to) Language. (_convention_; may become _coded_)
+
+- Accepted values: any
+
+Might get a class with ISO-639 interpretation in the future.
+
 ## `tweet`
 
-[Twitter](https://twitter.com/) post.
+[Twitter](https://twitter.com/) post. (_configured_)
 
 - Accepted values: [_account_`,`]_post_ or long form URL
 - Representation: [_account_`,`]_post_
@@ -229,33 +238,33 @@ but is present in the example configuration file.
 
 ## `uri`
 
-Universal Resource Identifier.
+Universal Resource Identifier. (_coded_)
 
 - Accepted values: URI
 - Class: `URI`
 
 ## `url`
 
-Universal Resource Locator.
+Universal Resource Locator. (_coded_)
 
 - Accepted values: URL
 - Class: `URL`
 
 ## `urn`
 
-Universal Resource Name.
+Universal Resource Name. (_coded_)
 
 - Class: `URN`
 
 ## `v`
 
-Volume (of a multi-volume work).
+Volume (of a multi-volume work). (_convention_)
 
 - Accepted values: any
 
 ## `yt`
 
-YouTube video.
+YouTube video. (_configured_)
 
 - Accepted values: _id_ or long form URL or `youtu.be/`_id_ URL
 - Representation: _id_

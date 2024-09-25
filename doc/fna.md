@@ -14,8 +14,14 @@ For information on a specific subcommand, run `fna help` _subcommand_
 #### `--config` _file_, `-c` _file_
 
 Read the given [configuration _file_](configuration.md),
-instead of the looking for
+after the
 [default configuration files](configuration.md#default-files).
+
+#### `--no-default-config` _file_
+
+Do not read any
+[default configuration files](configuration.md#default-files).
+
 
 #### `--decoder` _decoder_, `-d` _decoder_
 
@@ -50,7 +56,7 @@ Not further documented and may not be stable.
 - [`add`](#add) - Add an attribute.
 - [`decode`](#decode) - Decode a string.
 - [`decoder`](#decoder) - Set the current active decoder.
-- [`delete`](#delete) - Delete all attributes for one or more ‹key›s.
+- [`delete`](#delete) - Delete all attributes for one or more keys.
 - [`dir`](#dir) - Set the directory associated with a file name.
 - [`encode`](#encode) - Encode and prints the current attributes.
 - [`encoder`](#encoder) - Set the current active encoder.
@@ -93,7 +99,7 @@ Set the current active [_decoder_](#encodings).
 
 `delete` _key_[`,`_key_]*
 
-Delete all attributes for one or more _key_s.
+Delete all attributes for one or more _key_ s.
 
 It is not an error for keys not to be present.
 The complement of `delete` is `extract`.
@@ -130,7 +136,7 @@ Set the current active [_encoder_](#encodings).
 
 `extract` _key_[`,`_key_]*
 
-Extract attributes for one or more _key_s.
+Extract attributes for one or more _key_ s.
 
 It is not an error for keys not to be present.
 The complement of `extract` is `delete`.
@@ -177,7 +183,7 @@ Set the current active [_mode_](#modes).
 
 Arranges keys.
 With `--all`, arranges the attribute keys in alphabetical order.
-With given _key_s, arranges the attribute set so that those keys appear
+With given _key_ s, arranges the attribute set so that those keys appear
 in the specified order. Other keys will follow in their original order.
 
 #### remove
@@ -270,7 +276,7 @@ An ISBN may follow. A four-digit year may follow. An edition, consisting
 of a number, a number suffix, and the word `edition`, may follow.
 
 ```
-    sfc       → sfctitle [‘ by ’ sfcauthor] [«‘ ’» (isbn | date | sfced)]*
+    sfc       → sfctitle [‘, by ’ sfcauthor] [«‘, ’» (isbn | date | sfced)]*
     sfctitle  → [title [‘ - ’ title]*]
     sfcauthor → author [‘, ’ author]*
     sfced     → edition (‘st’ | ‘nd’ | ‘rd’ | ‘th’) ‘ edition’
