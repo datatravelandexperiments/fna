@@ -112,10 +112,24 @@ def test_merge_options_none():
     d = config.merge_options(None, args, a=10, b=20, c=30)
     assert d == {'a': 10, 'b': 22, 'c': 30}
 
-def test_rccamo(monkeypatch):
+def test_rccamo_without_default_config(monkeypatch):
     f = io.BytesIO(b'[option]\nencoder = "v0"\na = 1\n')
     monkeypatch.setattr(Path, 'open', lambda *_: f)
-    args = argparse.Namespace(a=None, b=22, c=None, config=None)
+    args = argparse.Namespace(
+        a=None, b=22, c=None, config=None, default_config=False)
+    c, options = config.read_cmd_configs_and_merge_options(
+        'test', ['fake.toml'], args, a=10, b=20, c=30)
+    assert options == {'encoder': 'v0', 'a': 1, 'b': 22, 'c': 30}
+    assert c == {'option': options}
+
+def test_rccamo_with_default_config(monkeypatch):
+    f = io.BytesIO(b'[option]\nencoder = "v0"\na = 1\n')
+    monkeypatch.setattr(Path, 'open', lambda *_: f)
+    monkeypatch.setattr(Path, 'is_dir', lambda p: p == Path('/etc/xdg'))
+    monkeypatch.setattr(Path, 'exists',
+                        lambda p: p == Path('/etc/xdg/fnattr/test.toml'))
+    args = argparse.Namespace(
+        a=None, b=22, c=None, config=None, default_config=True)
     c, options = config.read_cmd_configs_and_merge_options(
         'test', [], args, a=10, b=20, c=30)
     assert options == {'encoder': 'v0', 'a': 1, 'b': 22, 'c': 30}
