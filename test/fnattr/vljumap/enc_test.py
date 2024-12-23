@@ -32,6 +32,7 @@ CASES = {
         'win': ('1. [edition=2; date=2007; isbn=0123456789]'),
         'sfc': ('0123456789, 2nd edition, 2007'),
         'sfc0': ('0123456789 2nd edition 2007'),
+        'ex1': ('1. #edition=2 #date=2007 #isbn=0123456789'),
         'json': ('{"n": ["1"], "edition": ["2"], "date": ["2007"], '
                  '"isbn": ["0123456789"]}'),
         'sh': ('n=(1)\n'
@@ -60,6 +61,7 @@ CASES = {
         'win': ('[a=Author, A]'),
         'sfc': ('by Author, A'),
         'sfc0': ('by Author, A'),
+        'ex1': ('#a=Author, A'),
         'json': ('{"a": ["Author, A"]}'),
         'sh': ("a=('Author, A')"),
         'keyvalue': ('a: Author, A'),
@@ -77,6 +79,7 @@ CASES = {
         'win': ('About Things'),
         'sfc': ('About Things'),
         'sfc0': ('About Things'),
+        'ex1': ('About Things'),
         'json': ('{"title": ["About Things"]}'),
         'sh': ("title=('About Things')"),
         'keyvalue': ('title: About Things'),
@@ -118,6 +121,9 @@ CASES = {
                 '9780123456786, 2nd edition, 2007'),
         'sfc0': ('What? - Strange - a subtitle? by Paul Penman, Writer, W '
                  '9780123456786 2nd edition 2007'),
+        'ex1': ('3.5. What? - Strange %2D a subtitle? '
+               '#a=Paul Penman+Writer, W #edition=2 #date=2007 '
+               '#isbn=9780123456786 #lccn=89-456 #special #t=12:34:56'),
         'json': ('{"a": ["Paul Penman", "Writer, W"], '
                  '"title": ["What?", "Strange - a subtitle?"], '
                  '"edition": ["2"], '
@@ -186,6 +192,7 @@ CASES = {
         'v2': ('Mr. Book {a=Paul Penman;a=Writer, W;lccn=89-456}'),
         'v1': ('Paul Penman; Writer, W: Mr. Book [lccn=89-456]'),
         'v0': ('Paul Penman; Writer, W: Mr. Book lccn=89-456'),
+        'ex1': ('Mr. Book #a=Paul Penman+Writer, W #lccn=89-456'),
     },
 }
 
@@ -227,12 +234,12 @@ def test_v3_decode_empty_key():
     (enc.v3, enc.V3_CONFIG),
     (enc.v2, enc.V2_CONFIG),
     (enc.win, enc.WIN_CONFIG),
+    (enc.ex1, enc.EX1_CONFIG),
 ])
 def test_decode_file(e, config):
     d = pathlib.Path('/xyz')
     s = f'{config.attr_start}t=1:30.5{config.attr_end}'
     m = VljuMap()
-    print(f'\n{e.desc=}')
     r = e.decode_file(m, d / s, TstEncVlju.factory)
     assert r.directory == d
     assert r.stem == s
@@ -252,6 +259,27 @@ def test_v0_decode():
                              ['a', 'title', 'isbn'])
     assert enc.v0.decode(VljuMap(), CASES['E']['v0'],
                          TstEncVlju.factory) == CASES['E']['MAP']
+
+@pytest.mark.parametrize(('m', 'e'),
+                         [(d['MAP'], d['ex1']) for d in CASES.values()])
+def test_ex1_decode_cases(m, e):
+    assert enc.ex1.decode(VljuMap(), e, TstEncVlju.factory) == m
+
+
+@pytest.mark.parametrize(
+    ('vl'),
+    [['#a', '#a#', '#a=#', '#a = +'],
+     [
+         '3.5. What? #a=Paul Penman+Writer, W #edition=2 #date=2007',
+         '3.5. What? #a=Paul Penman+Writer, W#edition=2#date=2007#',
+         '3.5. What? ##a=Paul Penman + Writer, W #edition=2 #date=2007',
+         '3.5. What?# a = Paul Penman # a = Writer, W #edition=2#date=2007#',
+     ]])
+def test_ex1_decode_variants(vl):
+    for i in vl:
+        n = enc.ex1.decode(VljuMap(), i, TstEncVlju.factory)
+        e = enc.ex1.encode(n, None)
+        assert e == vl[0]
 
 def test_sfc_decode():
     assert enc.sfc.decode(VljuMap(), CASES['A']['sfc'],

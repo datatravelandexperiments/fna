@@ -12,10 +12,13 @@ from fnattr.util import pytestutil
 
 MK_V2 = '{x=2;x=1;z=Z;z=Y;y=Why}'
 MK_V3 = '[x=2; x=1; z=Z; z=Y; y=Why]'
+MK_EX1 = '#x=2+1 #z=Z+Y #y=Why'
 F1SFC = 'What?, by Paul Penman, 0123456789, 2nd edition, 2007'
 F1V3 = 'What? [a=Paul Penman; isbn=9780123456786; edition=2; date=2007]'
+F1EX1 = 'What? #a=Paul Penman#isbn=9780123456786#edition=2#date=2007'
 D1SFC = f'/home/sfc/books/{F1SFC}.pdf'
 D1V3 = f'/home/sfc/books/{F1V3}.pdf'
+D1EX1 = f'/home/sfc/books/{F1EX1}.pdf'
 
 def fna(argv: list[str], cap) -> tuple[int, str]:
     status = fnattr.fna.main(['fna', '--no-default-config', *argv])
@@ -96,9 +99,9 @@ def test_fna_encode(capsys, caplog):
     assert caplog.text == ''
 
 def test_fna_encoder(capsys, caplog):
-    r, out = fna(['decode', MK_V3, 'encoder', 'v2', 'encode'], capsys)
+    r, out = fna(['decode', MK_V3, 'encoder', 'ex1', 'encode'], capsys)
     assert r == 0
-    assert out == MK_V2 + '\n'
+    assert out == MK_EX1 + '\n'
     assert caplog.text == ''
 
 def test_fna_encoder_name(capsys, caplog):
@@ -190,11 +193,11 @@ def test_fna_rename(capsys, caplog, monkeypatch):
     monkeypatch.setattr(Path, 'rename', mock_rename)
     monkeypatch.setattr(Path, 'mkdir', lambda _, **_kw: True)
     r, out = fna(
-        ['decoder', 'sfc', 'file', D1SFC, 'order', 'a,isbn,edition', 'rename'],
+        ['decoder', 'ex1', 'file', D1EX1, 'order', 'a,isbn,edition', 'rename'],
         capsys)
     assert r == 0
     assert out == ''
-    assert result[0].args[0] == Path(D1SFC)
+    assert result[0].args[0] == Path(D1EX1)
     assert result[0].args[1] == Path(D1V3)
     assert caplog.text == ''
 

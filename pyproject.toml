@@ -93,7 +93,7 @@ addopts = "--tb=native"
 src = ["src"]
 namespace-packages = ["src/extra"]
 line-length = 80
-allowed-confusables = ["‘", "’", "–", "—", "‹", "›", "ı", "′", "″"]
+allowed-confusables = ["‘", "’", "–", "—", "‹", "›", "ı", "′", "″", "¦", "·"]
 select = ["ALL"]
 ignore = [
     "ANN002",   # missing-type-args: Nah.

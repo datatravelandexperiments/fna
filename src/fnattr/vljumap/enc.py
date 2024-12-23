@@ -152,20 +152,28 @@ v3 = _register_encoder(
 
 def _v3_enc(config: V3Config, n: VljuMap, mode: str | None) -> str:
     m = n.to_strings(mode)
+    sequence = _v3_enc_sequence(config, m)
+    title = _v3_enc_title(config, m)
+    attrs = _v3_enc_attrs(config, m)
+    return join_non_empty(' ', sequence, title, attrs)
 
+def _v3_enc_sequence(config: V3Config, m: MultiMap[str, str]) -> str:
     sequence = config.seq_join.join(m['n'])
-    sequence = sequence and f'{config.seq_start}{sequence}{config.seq_end}'
+    return sequence and f'{config.seq_start}{sequence}{config.seq_end}'
+
+def _v3_enc_title(config: V3Config, m: MultiMap[str, str]) -> str:
     title_qjoin = config.title_join.translate(
         escape.mktrans_urlish(config.title_join.strip()))
-    title = config.title_join.join(
+    return config.title_join.join(
         config.quote.encode(i).replace(config.title_join, title_qjoin)
         for i in m['title'])
+
+def _v3_enc_attrs(config: V3Config, m: MultiMap[str, str]) -> str:
     attrs = config.attr_join.join(
         kv_fmt(k, v, config.attr_kv, config.quote)
         for k, v in m.pairs()
         if k not in ('title', 'n'))
-    attrs = attrs and f'{config.attr_start}{attrs}{config.attr_end}'
-    return join_non_empty(' ', sequence, title, attrs)
+    return attrs and f'{config.attr_start}{attrs}{config.attr_end}'
 
 def _v3_dec_file(config: V3Config, n: VljuMap, p: Path,
                  factory: VljuFactory) -> DecodeFileResult:
@@ -466,11 +474,133 @@ def _v0_dec_iter(s: str) -> Generator[tuple[str, str], None, None]:
 
 ###############################################################################
 #
+# EX1 Encoder
+#
+###############################################################################
+
+EX1_DESC = 'EXperiment1 encoder.'
+
+EX1_GRAMMAR = """
+    ex1       → v3seq «‘ ’» v3title ex1attr*
+    ex1attr   → ‘#’ [k [‘=’ ex1values]]
+    ex1values → v [‘+’ v]*
+    a «j» b   → (a | b | ajb)
+"""
+
+EX1_DESCRIPTION = """
+  Encoder format ex1 consists, in order, of optional sequence numbers,
+  optional title and subtitles, and optional attributes.
+
+  Sequence numbers begin with a digit and end with a period. Multiple sequence
+  numbers are allowed, but they must be adjacent.
+
+  Title and optional subtitles are separated by ‘ - ’ (including the spaces).
+
+  Attributes are preceded by ‘#’. Each attribute consists of a key, optionally
+  followed by ‘=’ and one or more values, separated by ‘+’. Leading and
+  trailing spaces are ignored.
+
+  Characters with special meaning to the encoding, or not allowed in file
+  names, are represented using URL-style % encoding.
+""" + EX1_GRAMMAR
+
+EX1_CONFIG = V3Config(
+    quote=escape.Escape(
+        escape.mkencode_urlish(escape.UNSAFE_ON_UNIX
+                               + '#+'), urllib.parse.unquote),
+        attr_start='#',
+        attr_end='#',
+        attr_join='+')
+
+def ex1_encode(n: VljuMap, mode: str | None = None) -> str:
+    return _ex1_enc(EX1_CONFIG, n, mode)
+
+def ex1_decode(n: VljuMap, s: str, factory: VljuFactory) -> VljuMap:
+    return _ex1_dec(EX1_CONFIG, n, s, factory)
+
+def ex1_decode_file(n: VljuMap, p: Path,
+                   factory: VljuFactory) -> DecodeFileResult:
+    return _ex1_dec_file(EX1_CONFIG, n, p, factory)
+
+ex1 = _register_encoder(
+    Encoder(
+        'ex1',
+        ex1_encode,
+        ex1_decode,
+        ex1_decode_file,
+        desc=EX1_DESC,
+        description=EX1_DESCRIPTION))
+
+def _ex1_enc(config: V3Config, n: VljuMap, mode: str | None) -> str:
+    m = n.to_strings(mode)
+    sequence = _v3_enc_sequence(config, m)
+    title = _v3_enc_title(config, m)
+    attrs = _ex1_enc_attrs(config, m)
+    return join_non_empty(' ', sequence, title, attrs)
+
+def _ex1_enc_attrs(config: V3Config, m: MultiMap[str, str]) -> str:
+    attrs = ' '.join(
+        kv_fmtl(config.attr_start + k, v,
+                config.attr_kv, config.attr_join, config.quote)
+        for k, v in m.lists()
+        if k not in ('title', 'n'))
+    return attrs
+
+def _ex1_dec(config: V3Config, n: VljuMap, s: str,
+            factory: VljuFactory) -> VljuMap:
+    return n.add_pairs(_ex1_dec_iter(config, s), factory)
+
+def _ex1_dec_iter(config: V3Config, s: str) -> Iterable[tuple[str, str]]:
+    if config.attr_start in s:
+        s, _, attr = s.partition(config.attr_start)
+    else:
+        attr = ''
+    if s:
+        sequence, title = _v3_dec_seq(config, s)
+        for v in sequence:
+            yield ('n', v)
+        if title:
+            for i in title.split(config.title_join):
+                yield ('title', escape.winfile.decode(i.strip()))
+    if attr:
+        for k, v in _ex1_dec_attr(config, attr):
+            yield (k, v)
+
+def _ex1_dec_attr(config: V3Config, s: str) -> Iterable[tuple[str, str]]:
+    if s.endswith(config.attr_end):
+        s = s[:-1]
+    for kv in s.split(config.attr_start.strip()):
+        if config.attr_kv in kv:
+            k, v = kv.split(config.attr_kv, 1)
+        else:
+            k = kv
+            v = ''
+        k = escape.winfile.decode(k.strip())
+        if not k:
+            continue
+        for i in v.split(config.attr_join):
+            yield (k, escape.winfile.decode(i.strip()))
+
+def _ex1_dec_file(config: V3Config, n: VljuMap, p: Path,
+                  factory: VljuFactory) -> DecodeFileResult:
+    bad_suffix = ((config.attr_start in p.suffix)
+                  or (config.attr_end and config.attr_end in p.suffix))
+    if bad_suffix:
+        stem = p.stem + p.suffix
+        suffix = ''
+    else:
+        stem = p.stem
+        suffix = p.suffix
+    _ex1_dec(config, n, stem, factory)
+    return DecodeFileResult(p.parent, stem, suffix)
+
+###############################################################################
+#
 # SFC Encoder
 #
 ###############################################################################
 
-SFC_DESC = "SFC's encoder."
+SFC_DESC = "SFC encoder."
 
 SFC_GRAMMAR = """
     sfc       → sfctitle [‘, by ’ sfcauthor] [«‘, ’» (isbn | date | sfced)]*
@@ -567,7 +697,7 @@ def _sfc_dec_iter(s: str) -> Generator[tuple[str, str], None, None]:
         for i in s.split(' - ', 1):
             yield ('title', escape.winfile.decode(i.strip()))
 
-SFC0_DESC = "SFC0's encoder."
+SFC0_DESC = "SFC v0 encoder."
 
 SFC0_GRAMMAR = """
     sfc0       → sfc0title [‘ by ’ sfc0author] [«‘ ’» (isbn | date | sfc0ed)]*
@@ -821,6 +951,13 @@ def _csv_dec_iter(s: str, **kwargs) -> Generator[tuple[str, str], None, None]:
 def kv_fmt(k: str, v: str | None, sep: str, e: escape.Escape) -> str:
     if v:
         return f'{k}{sep}{e.encode(v)}'
+    return k
+
+def kv_fmtl(k: str, v: Iterable[str] | None, sep: str, vsep: str,
+            e: escape.Escape) -> str:
+    values = vsep.join((e.encode(i) for i in v))
+    if values:
+        return f'{k}{sep}{values}'
     return k
 
 def join_non_empty(sep: str, *args: str) -> str:
