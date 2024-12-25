@@ -4,6 +4,7 @@
 import textwrap
 
 from collections.abc import Callable, Iterable, Iterator
+from typing import ClassVar
 
 from fnattr.util.docsplit import docsplit
 from fnattr.util.error import Error
@@ -13,7 +14,7 @@ from fnattr.vljum.m import M
 class Runner:
     """Command DSL."""
 
-    commands: dict[str, Callable] = {}
+    commands: ClassVar[dict[str, Callable]] = {}
 
     def __init__(self, m: M | None = None) -> None:
         self.tokens: Iterator[str] | None = None

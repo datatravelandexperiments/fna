@@ -42,7 +42,7 @@ class M(VljuM):
                 for k in ('short', 'long', 'repr')
             }).set_default('short'),
     }
-    site_classes: dict[str, type[SiteBase]] = {}
+    site_classes: ClassVar[dict[str, type[SiteBase]]] = {}
 
     @classmethod
     def configure_sites(cls, site: Mapping[str, Mapping[str, Any]]) -> None:
@@ -74,7 +74,7 @@ class M(VljuM):
                  loc: dict[str, Any] | None = None) -> Any:  # noqa: any-type
         if glo is None:
             glo = cls.exports()
-        return eval(s, glo, loc)  # noqa: eval
+        return eval(s, glo, loc)  # noqa: S307
 
     @classmethod
     def execute(cls,
@@ -83,7 +83,7 @@ class M(VljuM):
                 loc: dict[str, Any] | None = None) -> dict[str, Any]:
         if glo is None:
             glo = cls.exports()
-        exec(s, glo, loc)  # noqa: exec-builtin
+        exec(s, glo, loc)  # noqa: S102
         return glo
 
 def _make_free_function(cls: type, name: str) -> Callable:

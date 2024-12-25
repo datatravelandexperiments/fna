@@ -5,7 +5,7 @@ import re
 import urllib.parse
 
 from collections.abc import Sequence
-from typing import Self
+from typing import ClassVar, Self
 
 from fnattr.util import escape
 from fnattr.util.typecheck import needtype
@@ -43,8 +43,14 @@ class DOI(Info):
         doi     → ‘doi:’ `_prefix` ‘/’ `_suffix`ᵖ
     """
 
-    _i = {'doi': Authority('doi'), 'hdl': Authority('hdl')}
-    _u = {'doi': Authority('doi.org'), 'hdl': Authority('hdl.handle.net')}
+    _i: ClassVar[dict[str, Authority]] = {
+        'doi': Authority('doi'),
+        'hdl': Authority('hdl'),
+    }
+    _u: ClassVar[dict[str, Authority]] = {
+        'doi': Authority('doi.org'),
+        'hdl': Authority('hdl.handle.net'),
+    }
 
     _matcher = re.compile(
         r"""

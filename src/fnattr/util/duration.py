@@ -91,7 +91,7 @@ def fmt_nanoseconds(nanoseconds: int, p: str = 'dhms') -> str:
         sign = ''
     d, h, m, s, n = nanoseconds_to_dhmsn(nanoseconds)
     r = (
-        f'{d}{p[0]}{h:02}{p[1]}{m:02}{p[2]}{s:02}'  #
+        f'{d}{p[0]}{h:02}{p[1]}{m:02}{p[2]}{s:02}'  # -
         .removeprefix(f'0{p[0]}')                   # if no days
         .removeprefix('0')                          # if hours < 10
         .removeprefix(f'0{p[1]}')                   # if no hours

@@ -61,4 +61,4 @@ def evaluate(s: str,
              values: Mapping[str, Any],
              builtins: Mapping[str, Any]) -> Any:
     g = dict(values) | {'__builtins__': builtins}
-    return eval(s, g)   # noqa: PGH001, eval-used
+    return eval(s, g)   # noqa: S307, eval-used

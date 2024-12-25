@@ -87,9 +87,9 @@ class SQLite:
         return f'file:{self._filename!s}?{q}'
 
     def __exit__(self,
-                 et: type[BaseException],
-                 ev: BaseException,
-                 traceback: TracebackType) -> None:
+                 et: type[BaseException] | None,
+                 ev: BaseException | None,
+                 traceback: TracebackType | None) -> None:
         self.close()
 
     def close(self) -> Self:

@@ -21,8 +21,7 @@ def mod11_checksum(s: str) -> int:
     r = 0
     for n in range(1, 1 + len(s)):
         r += (n + 1) * int(s[-n])
-    r = 11 - r % 11
-    return r
+    return 11 - r % 11
 
 def mod11_checksum_to_check_digit(n: int) -> str:
     return '0123456789X'[n]

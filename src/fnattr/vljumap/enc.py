@@ -22,6 +22,8 @@ from fnattr.vljumap import VljuFactory, VljuMap
 
 @dataclass
 class DecodeFileResult:
+    """Return values from decode_file()."""
+
     directory: Path
     stem: str
     suffix: str
@@ -600,7 +602,7 @@ def _ex1_dec_file(config: V3Config, n: VljuMap, p: Path,
 #
 ###############################################################################
 
-SFC_DESC = "SFC encoder."
+SFC_DESC = 'SFC encoder.'
 
 SFC_GRAMMAR = """
     sfc       → sfctitle [‘, by ’ sfcauthor] [«‘, ’» (isbn | date | sfced)]*
@@ -657,7 +659,7 @@ SFC_TAIL_RE = re.compile(
             (?P<date> [12]\d\d\d ) |
             (?: (?P<edition> \d+ ) \w*\s+edition )
         )$
-        """, re.X)
+        """, re.VERBOSE)
 
 def _sfc_dec_iter(s: str) -> Generator[tuple[str, str], None, None]:
     while True:
@@ -697,7 +699,7 @@ def _sfc_dec_iter(s: str) -> Generator[tuple[str, str], None, None]:
         for i in s.split(' - ', 1):
             yield ('title', escape.winfile.decode(i.strip()))
 
-SFC0_DESC = "SFC v0 encoder."
+SFC0_DESC = 'SFC v0 encoder.'
 
 SFC0_GRAMMAR = """
     sfc0       → sfc0title [‘ by ’ sfc0author] [«‘ ’» (isbn | date | sfc0ed)]*
@@ -955,9 +957,10 @@ def kv_fmt(k: str, v: str | None, sep: str, e: escape.Escape) -> str:
 
 def kv_fmtl(k: str, v: Iterable[str] | None, sep: str, vsep: str,
             e: escape.Escape) -> str:
-    values = vsep.join((e.encode(i) for i in v))
-    if values:
-        return f'{k}{sep}{values}'
+    if v is not None:
+        values = vsep.join(e.encode(i) for i in v)
+        if values:
+            return f'{k}{sep}{values}'
     return k
 
 def join_non_empty(sep: str, *args: str) -> str:

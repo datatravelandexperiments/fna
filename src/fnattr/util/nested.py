@@ -16,7 +16,7 @@ T = TypeVar('T')
 D = TypeVar('D')
 MM = TypeVar('MM', bound=MutableMapping)
 
-def nget(d: Mapping[T, Any], keys: Iterable[T], default) -> Any:
+def nget(d: Mapping[T, Any], keys: Iterable[T], default: Any) -> Any:
     """Get from nested dictionaries."""
     t: Any = d
     try:
@@ -38,8 +38,8 @@ def nset(d: MutableMapping, keys: Iterable, value: Any) -> None:
     ki = iter(keys)
     try:
         key: Any = next(ki)
-    except StopIteration:
-        raise KeyError(keys)
+    except StopIteration as e:
+        raise KeyError(keys) from e
     while True:
         try:
             next_key = next(ki)

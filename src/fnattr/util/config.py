@@ -98,8 +98,7 @@ def cmd_config_files(cmds: str | Iterable[str]) -> list[Path]:
     dirs = xdg_config_dirs()
     names = ['vlju', cmds] if isinstance(cmds, str) else ['vlju', *cmds]
     for name in names:
-        for file in find_file_in_dirs(Path(f'fnattr/{name}.toml'), dirs):
-            files.append(file)
+        files.extend(find_file_in_dirs(Path(f'fnattr/{name}.toml'), dirs))
     return files
 
 def merge_options(options: dict[str, Any] | None, args: argparse.Namespace,

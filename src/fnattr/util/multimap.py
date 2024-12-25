@@ -25,9 +25,8 @@ class MultiMap(Generic[K, V]):
         self.data: defaultdict[K, list[V]] = defaultdict(list[V])
 
     def __eq__(self, other: object) -> bool:
-        # pylint:disable=unidiomatic-typecheck
         if isinstance(other, MultiMap):
-            return (type(self) == type(other)) and (self.data == other.data)
+            return (type(self) is type(other)) and (self.data == other.data)
         return False
 
     def __getitem__(self, k: K) -> list[V]:

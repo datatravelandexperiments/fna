@@ -93,13 +93,14 @@ addopts = "--tb=native"
 src = ["src"]
 namespace-packages = ["src/extra"]
 line-length = 80
+
+[tool.ruff.lint]
 allowed-confusables = ["‘", "’", "–", "—", "‹", "›", "ı", "′", "″", "¦", "·"]
 select = ["ALL"]
 ignore = [
     "ANN002",   # missing-type-args: Nah.
     "ANN003",   # missing-type-kwargs: Nah.
-    "ANN101", 	# missing-type-self: Nah.
-    "ANN102",   # missing-type-cls: Nah.
+    "ANN401",   # any-type: I wrote what I meant.
     "ERA",      # eradicate: Complains about yapf: directives.
     "C901",     # complex-structure: Be direct.
     "D102",     # undocumented-public-method: Plan to fix eventually.
@@ -114,32 +115,35 @@ ignore = [
     "PLR0912",  # too-many-branches: Be direct.
     "PLR0913",  # too-many-arguments: Be direct.
     "PLR2004",  # magic-value-comparison: Be direct.
+    "PYI041",   # redundant-numeric-union: Prefer to be explicit.
+    "PYI025",   # unaliased-collections-abc-set-import
+    "RUF100",   # unused-noqa: Ruff isn't the only tool in the world.
     "S314", 	# suspicious-xml-element-tree-usage: defusedxml is not builtin.
     "T20",      # flake8-print: I like having output.
     "TRY400",   # error-instead-of-exception: Don't dump traces on end users.
 ]
 
-[tool.ruff.flake8-annotations]
+[tool.ruff.lint.flake8-annotations]
 allow-star-arg-any = true
 suppress-dummy-args = true
 
-[tool.ruff.flake8-quotes]
+[tool.ruff.lint.flake8-quotes]
 inline-quotes = "single"
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 lines-after-imports = 1
 lines-between-types = 1
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "*_test.py" = [
     "ANN001", "ANN201", "ANN202",   # type annotations tbd
     "PLC1901",  # testing for specific results
     "S101",     # assert
 ]
-"src/vlju/types/doi/org.py" = ["Q000"]
-"src/vlju/types/ean/isbn_ranges.py" = ["E501"]
+"src/fnattr/vlju/types/doi/org.py" = ["Q000"]
+"src/fnattr/vlju/types/ean/isbn_ranges.py" = ["E501"]
 
-[tool.ruff.pylint]
+[tool.ruff.lint.pylint]
 max-args = 8
 
 [tool.yapf]

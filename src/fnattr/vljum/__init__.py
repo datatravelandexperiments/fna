@@ -10,7 +10,7 @@ import sys
 from collections import defaultdict
 from collections.abc import Mapping, MutableMapping
 from pathlib import Path
-from typing import Any, Self, TextIO
+from typing import Any, ClassVar, Self, TextIO
 
 from fnattr.util.error import Error
 from fnattr.util.io import PathLike, open_input, open_output
@@ -26,7 +26,8 @@ ModeArg = str | None
 class VljuM(VljuMap):
     """VljuMap operations."""
 
-    default_registry: MutableMapping[str, Registry] = defaultdict(Registry)
+    default_registry: ClassVar[MutableMapping[str,
+                                              Registry]] = defaultdict(Registry)
 
     def __init__(self, i: VljuMap | File | Path | str | object = None) -> None:
         super().__init__()

@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: MIT
+# ruff: noqa: Q000
 """DOI organization data."""
 
 from collections.abc import Sequence

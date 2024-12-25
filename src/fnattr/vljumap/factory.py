@@ -41,6 +41,6 @@ class LooseMappedFactory(MappedFactory):
     def __call__(self, k: str, v: str) -> tuple[str, Vlju]:
         try:
             value = self.kmap.get(k, self.default)(v)
-        except Exception:   # noqa: blind-except
+        except Exception:   # noqa: BLE001
             value = self.default(v)
         return (k, value)
