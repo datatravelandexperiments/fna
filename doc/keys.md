@@ -169,6 +169,10 @@ Page(s) in a paginated work (_convention_).
 This is not defined within `fna`,
 but is present in the example configuration file.
 
+## `r`
+
+Aspect ratio (_convention_).
+
 ## `sub`
 
 Subtitle language. (_convention_; may become _coded_)
@@ -224,6 +228,12 @@ Translation (to) Language. (_convention_; may become _coded_)
 - Accepted values: any
 
 Might get a class with ISO-639 interpretation in the future.
+
+## `tr`
+
+Translator. (_convention_)
+
+- Accepted values: any
 
 ## `tweet`
 
