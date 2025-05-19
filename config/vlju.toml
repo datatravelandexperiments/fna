@@ -1,6 +1,6 @@
 [option]
-decoder = 'v3'
-encoder = 'v3'
+decoder = 'v4'
+encoder = 'v4'
 
 [site.bsky]
 name = 'Bluesky'

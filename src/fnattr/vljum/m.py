@@ -33,9 +33,9 @@ class M(VljuM):
                 'strict': strict_factory,
             }).set_default('loose'),
         'encoder':
-            Registry().update(enc.encoder).set_default('v3'),
+            Registry().update(enc.encoder).set_default('v4'),
         'decoder':
-            Registry().update(enc.decoder).set_default('v3'),
+            Registry().update(enc.decoder).set_default('v4'),
         'mode':
             Registry().update({
                 k: k

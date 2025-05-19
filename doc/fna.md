@@ -244,7 +244,7 @@ If multiple attributes have URLs, they will be printed on separate lines.
 
 An _encoding_ determines the text representation of a set of attributes.
 
-Typical use of `fna` will not change from the default encoding, [`v3`](#v3).
+Typical use of `fna` will not change from the default encoding, [`v4`](#v4).
 
 ### `csv`
 
@@ -288,15 +288,75 @@ of a number, a number suffix, and the word `edition`, may follow.
 Attributes are encoded as shell arrays (ksh, bash).
 Decoding is not implemented.
 
-### `v0`
+### `v4`
 
-The most obsolete format.
+This is the default encoding format.
 
-Encoder format v0 is strictly limited in the attributes it can represent.
-This is supported only to convert old file names.
+Encoder format v4 consists, in order, of optional sequence numbers,
+optional title and subtitles, and optional attributes.
+
+Sequence numbers begin with a digit and end with a period.
+Multiple sequence numbers are allowed, but they must be adjacent.
+
+Title and optional subtitles are separated by ` - ` (including the spaces).
+
+Attributes are surrounded by `[` … `]` and separated by `;`.
+(A space follows each semicolon when encoding,
+but is not required when decoding.)
+Each attribute consists of a key, optionally followed by `=` and
+one or more values separated by `+`.
+
+Characters with special meaning to the encoding, or not allowed in file
+names, are represented using URL-style % encoding.
+
+### `v3`
+
+An obsolete format.
+
+Encoder format v3 is similar to [v4](#v4), except that multi-valued keys
+are expressed with multiple key-value pairs.
+
+Encoder format v3 consists, in order, of optional sequence numbers,
+optional title and subtitles, and optional attributes.
+
+Sequence numbers begin with a digit and end with a period.
+Multiple sequence numbers are allowed, but they must be adjacent.
+
+Title and optional subtitles are separated by ` - ` (including the spaces).
+
+Attributes are surrounded by `[` … `]` and separated by `;`.
+(A space follows each semicolon when encoding,
+but is not required when decoding.)
+Each attribute consists of a key, optionally followed by `=` and a value.
+
+Characters with special meaning to the encoding, or not allowed in file
+names, are represented using URL-style % encoding.
 
 ```
-    v0        → v1author «‘ ’» v1title «‘ ’» (isbn | ‘lccn=’ lccn)
+    v3        → v3seq «‘ ’» v3title «‘ ’» v3attrs
+    v3title   → [title [‘ - ’ title]*]
+    v3attrs   → [‘[’ v3kv [‘; ’ v3kv]* ‘]’]
+    v3kv      → k ‘=’ v
+    v3seq     → [digit (alnum | ‘.’)* ‘.’]
+    a «j» b   → (a | b | ajb)
+```
+
+### `v2`
+
+An obsolete format.
+
+Encoder format v2 is similar to [v3](#v3),
+except that attributes are surrounded by `{` … `}` rather than `[` … `]`,
+and separated by semicolons with no space.
+
+This is supported only to covert old file names.
+
+```
+    v2        → v2seq «‘ ’» v2title «‘ ’» v2attrs
+    v2title   → [title [‘ - ’ title]*]
+    v2attrs   → [‘{’ v2kv [‘;’ v2kv]* ‘}’]
+    v2kv      → k ‘=’ v
+    v2seq     → [digit (alnum | ‘.’)* ‘.’]
     a «j» b   → (a | b | ajb)
 ```
 
@@ -325,51 +385,15 @@ due to the ambiguity between authors and titles with subtitles.
     a «j» b   → (a | b | ajb)
 ```
 
-### `v2`
+### `v0`
 
-An obsolete format.
+The most obsolete format.
 
-Encoder format v2 is similar to [v3](#v3),
-except that attributes are surrounded by `{` … `}` rather than `[` … `]`,
-and separated by semicolons with no space.
-
-This is supported only to covert old file names.
+Encoder format v0 is strictly limited in the attributes it can represent.
+This is supported only to convert old file names.
 
 ```
-    v2        → v2seq «‘ ’» v2title «‘ ’» v2attrs
-    v2title   → [title [‘ - ’ title]*]
-    v2attrs   → [‘{’ v2kv [‘;’ v2kv]* ‘}’]
-    v2kv      → k ‘=’ v
-    v2seq     → [digit (alnum | ‘.’)* ‘.’]
-    a «j» b   → (a | b | ajb)
-```
-
-### `v3`
-
-This is the default encoding format.
-
-Encoder format v3 consists, in order, of optional sequence numbers,
-optional title and subtitles, and optional attributes.
-
-Sequence numbers begin with a digit and end with a period.
-Multiple sequence numbers are allowed, but they must be adjacent.
-
-Title and optional subtitles are separated by ` - ` (including the spaces).
-
-Attributes are surrounded by `[` … `]` and separated by `;`.
-(A space follows each semicolon when encoding,
-but is not required when decoding.)
-Each attribute consists of a key, optionally followed by `=` and a value.
-
-Characters with special meaning to the encoding, or not allowed in file
-names, are represented using URL-style % encoding.
-
-```
-    v3        → v3seq «‘ ’» v3title «‘ ’» v3attrs
-    v3title   → [title [‘ - ’ title]*]
-    v3attrs   → [‘[’ v3kv [‘; ’ v3kv]* ‘]’]
-    v3kv      → k ‘=’ v
-    v3seq     → [digit (alnum | ‘.’)* ‘.’]
+    v0        → v1author «‘ ’» v1title «‘ ’» (isbn | ‘lccn=’ lccn)
     a «j» b   → (a | b | ajb)
 ```
 

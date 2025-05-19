@@ -103,8 +103,8 @@ def main(argv: list[str] | None = None) -> int:
         cmd,
         args.config,
         args,
-        decoder='v3',
-        encoder='v3',
+        decoder='v4',
+        encoder='v4',
     )
     fnattr.vljum.m.M.configure_options(options)
     fnattr.vljum.m.M.configure_sites(config.get('site', {}))

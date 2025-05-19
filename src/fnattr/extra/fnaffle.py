@@ -265,7 +265,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv[1 :])
     log_level = log.config(cmd, args)
     config, options = read_cmd_configs_and_merge_options(
-        cmd, args.config, args, decoder='v3')
+        cmd, args.config, args, decoder='v4')
     M.configure_options(options)
     #   M.configure_sites(config.get('site', {}))
 

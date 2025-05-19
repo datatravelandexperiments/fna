@@ -12,12 +12,15 @@ from fnattr.util import pytestutil
 
 MK_V2 = '{x=2;x=1;z=Z;z=Y;y=Why}'
 MK_V3 = '[x=2; x=1; z=Z; z=Y; y=Why]'
+MK_V4 = '[x=2+1; z=Z+Y; y=Why]'
 MK_EX1 = '#x=2+1 #z=Z+Y #y=Why'
 F1SFC = 'What?, by Paul Penman, 0123456789, 2nd edition, 2007'
 F1V3 = 'What? [a=Paul Penman; isbn=9780123456786; edition=2; date=2007]'
+F1V4 = 'What? [a=Paul Penman; isbn=9780123456786; edition=2; date=2007]'
 F1EX1 = 'What? #a=Paul Penman#isbn=9780123456786#edition=2#date=2007'
 D1SFC = f'/home/sfc/books/{F1SFC}.pdf'
 D1V3 = f'/home/sfc/books/{F1V3}.pdf'
+D1V4 = f'/home/sfc/books/{F1V4}.pdf'
 D1EX1 = f'/home/sfc/books/{F1EX1}.pdf'
 
 def fna(argv: list[str], cap) -> tuple[int, str]:
@@ -37,7 +40,7 @@ def test_fna_add(capsys, caplog):
         ['add', 'y', '7', 'set', 'y', '8', 'add', 'y', '9', 'set', 'x', '7'],
         capsys)
     assert r == 0
-    assert out == '[y=8; y=9; x=7]\n'
+    assert out == '[y=8+9; x=7]\n'
     assert caplog.text == ''
 
 def test_fna_compare_different(capsys, caplog):
@@ -51,11 +54,11 @@ def test_fna_compare_different(capsys, caplog):
         'compare',
     ], capsys)
     assert r == 0
-    assert out == f'{D1SFC}\n{D1V3}\n'
+    assert out == f'{D1SFC}\n{D1V4}\n'
     assert caplog.text == ''
 
 def test_fna_compare_same(capsys, caplog):
-    r, out = fna(['file', D1V3, 'quiet', 'compare'], capsys)
+    r, out = fna(['file', D1V4, 'quiet', 'compare'], capsys)
     assert r == 0
     assert out == ''
     assert caplog.text == ''
@@ -63,7 +66,7 @@ def test_fna_compare_same(capsys, caplog):
 def test_fna_decode(capsys, caplog):
     r, out = fna(['decode', MK_V3], capsys)
     assert r == 0
-    assert out == MK_V3 + '\n'
+    assert out == MK_V4 + '\n'
     assert caplog.text == ''
 
 def test_fna_decoder(capsys, caplog):
@@ -75,15 +78,15 @@ def test_fna_decoder(capsys, caplog):
     assert caplog.text == ''
 
 def test_fna_decoder_name(capsys, caplog):
-    r, out = fna(['v2', 'decode', MK_V2, 'v3'], capsys)
+    r, out = fna(['v2', 'decode', MK_V2, 'v4'], capsys)
     assert r == 0
-    assert out == MK_V3 + '\n'
+    assert out == MK_V4 + '\n'
     assert caplog.text == ''
 
 def test_fna_delete(capsys, caplog):
     r, out = fna(['decode', MK_V3, 'delete', 'a,z'], capsys)
     assert r == 0
-    assert out == '[x=2; x=1; y=Why]\n'
+    assert out == '[x=2+1; y=Why]\n'
     assert caplog.text == ''
 
 def test_fna_dir(capsys, caplog):
@@ -93,19 +96,19 @@ def test_fna_dir(capsys, caplog):
     assert caplog.text == ''
 
 def test_fna_encode(capsys, caplog):
-    r, out = fna(['decode', MK_V3, 'encode'], capsys)
+    r, out = fna(['decode', MK_V4, 'encode'], capsys)
     assert r == 0
-    assert out == MK_V3 + '\n'
+    assert out == MK_V4 + '\n'
     assert caplog.text == ''
 
 def test_fna_encoder(capsys, caplog):
-    r, out = fna(['decode', MK_V3, 'encoder', 'ex1', 'encode'], capsys)
+    r, out = fna(['decode', MK_V4, 'encoder', 'ex1', 'encode'], capsys)
     assert r == 0
     assert out == MK_EX1 + '\n'
     assert caplog.text == ''
 
 def test_fna_encoder_name(capsys, caplog):
-    r, out = fna(['decode', MK_V3, 'v2', 'encode'], capsys)
+    r, out = fna(['decode', MK_V4, 'v2', 'encode'], capsys)
     assert r == 0
     assert out == MK_V2 + '\n'
     assert caplog.text == ''
@@ -119,7 +122,7 @@ def test_fna_encoder_unknown(capsys, caplog):
 def test_fna_extract(capsys, caplog):
     r, out = fna(['decode', MK_V3, 'extract', 'w,x'], capsys)
     assert r == 0
-    assert out == '[x=2; x=1]\n'
+    assert out == '[x=2+1]\n'
     assert caplog.text == ''
 
 def test_fna_factory(capsys, caplog):
@@ -138,7 +141,7 @@ def test_fna_file(capsys, caplog):
     r, out = fna(['sfc', 'file', D1SFC, 'order', 'a,isbn,edition', 'v3'],
                  capsys)
     assert r == 0
-    assert out == D1V3 + '\n'
+    assert out == D1V4 + '\n'
     assert caplog.text == ''
 
 def test_fna_filename(capsys, caplog):
@@ -149,11 +152,11 @@ def test_fna_filename(capsys, caplog):
         'order',
         'a,isbn,edition',
         'quiet',
-        'v3',
+        'v4',
         'filename',
     ], capsys)
     assert r == 0
-    assert out == D1V3 + '\n'
+    assert out == D1V4 + '\n'
     assert caplog.text == ''
 
 def test_fna_mode(capsys, caplog):
@@ -177,15 +180,15 @@ def test_fna_mode_name(capsys, caplog):
     assert caplog.text == ''
 
 def test_fna_order(capsys, caplog):
-    r, out = fna(['decode', MK_V3, 'order', 'y,z'], capsys)
+    r, out = fna(['decode', MK_V4, 'order', 'y,z'], capsys)
     assert r == 0
-    assert out == '[y=Why; z=Z; z=Y; x=2; x=1]\n'
+    assert out == '[y=Why; z=Z+Y; x=2+1]\n'
     assert caplog.text == ''
 
 def test_fna_remove(capsys, caplog):
-    r, out = fna(['decode', MK_V3, 'remove', 'y', 'Why'], capsys)
+    r, out = fna(['decode', MK_V4, 'remove', 'y', 'Why'], capsys)
     assert r == 0
-    assert out == '[x=2; x=1; z=Z; z=Y]\n'
+    assert out == '[x=2+1; z=Z+Y]\n'
     assert caplog.text == ''
 
 def test_fna_rename(capsys, caplog, monkeypatch):
@@ -198,13 +201,13 @@ def test_fna_rename(capsys, caplog, monkeypatch):
     assert r == 0
     assert out == ''
     assert result[0].args[0] == Path(D1EX1)
-    assert result[0].args[1] == Path(D1V3)
+    assert result[0].args[1] == Path(D1V4)
     assert caplog.text == ''
 
 def test_fna_rename_exists(capsys, caplog, monkeypatch):
     monkeypatch.setattr(Path, 'exists', lambda _: True)
     monkeypatch.setattr(Path, 'samefile', lambda *_: False)
-    r, out = fna(['file', D1V3, 'quiet', 'rename'], capsys)
+    r, out = fna(['file', D1V4, 'quiet', 'rename'], capsys)
     assert r != 0
     assert out == ''
     assert 'FileExistsError' in caplog.text
@@ -212,27 +215,27 @@ def test_fna_rename_exists(capsys, caplog, monkeypatch):
 def test_fna_rename_samefile(capsys, caplog, monkeypatch):
     monkeypatch.setattr(Path, 'exists', lambda _: True)
     monkeypatch.setattr(Path, 'samefile', lambda *_: True)
-    r, out = fna(['file', D1V3, 'quiet', 'rename'], capsys)
+    r, out = fna(['file', D1V4, 'quiet', 'rename'], capsys)
     assert r == 0
     assert out == ''
     assert caplog.text == ''
 
 def test_fna_set(capsys, caplog):
-    r, out = fna(['decode', MK_V3, 'set', 'x', '7'], capsys)
+    r, out = fna(['decode', MK_V4, 'set', 'x', '7'], capsys)
     assert r == 0
-    assert out == '[z=Z; z=Y; y=Why; x=7]\n'
+    assert out == '[z=Z+Y; y=Why; x=7]\n'
     assert caplog.text == ''
 
 def test_fna_sort_all(capsys, caplog):
-    r, out = fna(['decode', MK_V3, 'sort', '--all'], capsys)
+    r, out = fna(['decode', MK_V4, 'sort', '--all'], capsys)
     assert r == 0
-    assert out == '[x=1; x=2; z=Y; z=Z; y=Why]\n'
+    assert out == '[x=1+2; z=Y+Z; y=Why]\n'
     assert caplog.text == ''
 
 def test_fna_sort_keys(capsys, caplog):
-    r, out = fna(['decode', MK_V3, 'sort', 'w,x,y'], capsys)
+    r, out = fna(['decode', MK_V4, 'sort', 'w,x,y'], capsys)
     assert r == 0
-    assert out == '[x=1; x=2; z=Z; z=Y; y=Why]\n'
+    assert out == '[x=1+2; z=Z+Y; y=Why]\n'
     assert caplog.text == ''
 
 def test_fna_suffix(capsys, caplog):
@@ -266,7 +269,7 @@ def test_fna_run_empty(capsys, caplog):
     assert caplog.text == ''
 
 def test_fna_uri(capsys, caplog):
-    r, out = fna(['decode', F1V3, 'quiet', 'uri'], capsys)
+    r, out = fna(['decode', F1V4, 'quiet', 'uri'], capsys)
     assert r == 0
     assert out == 'urn:isbn:9780123456786\n'
     assert caplog.text == ''
@@ -294,7 +297,7 @@ def test_fna_url_string(capsys, caplog):
     assert caplog.text == ''
 
 def test_fna_url_none(capsys, caplog):
-    r, out = fna(['decode', F1V3, 'quiet', 'url'], capsys)
+    r, out = fna(['decode', F1V4, 'quiet', 'url'], capsys)
     assert r == 0
     assert out == ''
     assert caplog.text == ''

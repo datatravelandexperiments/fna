@@ -158,8 +158,8 @@ def run(argv: list[str] | None = None) -> int:
         ['fnaffle', cmd],
         args.config,
         args,
-        decoder='v3',
-        encoder='v3',
+        decoder='v4',
+        encoder='v4',
         user={'option': 'provider.danbooru.user'},
         token={'option': 'provider.danbooru.token'},
     )

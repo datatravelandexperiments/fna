@@ -26,39 +26,40 @@ def mk(pairs: Iterable[tuple[str, str]] | None = None,
     return state
 
 F1SFC = 'North by Northeast, by Paul Penman, 0123456789, 2nd edition, 2007'
-F1V3 = ('North by Northeast '
+F1V4 = ('North by Northeast '
         '[a=Paul Penman; isbn=9780123456786; edition=2; date=2007]')
 D1SFC = f'/home/sfc/books/{F1SFC}.pdf'
-D1V3 = f'/home/sfc/books/{F1V3}.pdf'
+D1V4 = f'/home/sfc/books/{F1V4}.pdf'
 
 MK_IN = [('x', '2'), ('z', 'Z'), ('x', '1'), ('z', 'Y'), ('y', 'Why')]
+MK_V4 = '[x=2+1; z=Z+Y; y=Why]'
 MK_V3 = '[x=2; x=1; z=Z; z=Y; y=Why]'
 MK_V2 = '{x=2;x=1;z=Z;z=Y;y=Why}'
 
 def test_runner_init():
     r = mk(MK_IN)
-    assert r.m.encode() == MK_V3
+    assert r.m.encode() == MK_V4
 
 def test_runner_command_add():
     r = mk(MK_IN)
     r.runs('add y 7 set y 8 add y 9 set x 7')
-    assert r.m.encode() == '[z=Z; z=Y; y=8; y=9; x=7]'
+    assert r.m.encode() == '[z=Z+Y; y=8+9; x=7]'
 
 def test_runner_command_compare_different(capsys):
     r = mk(args=['sfc', 'file', D1SFC, 'order', 'a,isbn,edition', 'quiet'])
     r.runs('v3 compare')
-    assert capsys.readouterr().out == f'{D1SFC}\n{D1V3}\n'
+    assert capsys.readouterr().out == f'{D1SFC}\n{D1V4}\n'
     assert not r.report
 
 def test_runner_command_compare_same(capsys):
-    r = mk(args=['file', D1V3, 'quiet'])
+    r = mk(args=['file', D1V4, 'quiet'])
     r.runs('compare')
     assert capsys.readouterr().out == ''
     assert not r.report
 
 def test_runner_command_decode():
     r = mk()
-    r.run(['decode', MK_V3])
+    r.run(['decode', MK_V4])
     assert r.m == fnattr.vljum.m.M().add_pairs(MK_IN)
 
 def test_runner_command_decoder():
@@ -74,7 +75,7 @@ def test_runner_decoder_name():
 def test_runner_command_delete():
     r = mk(MK_IN)
     r.runs('delete a,z')
-    assert r.m.encode() == '[x=2; x=1; y=Why]'
+    assert r.m.encode() == '[x=2+1; y=Why]'
 
 def test_runner_command_dir():
     r = mk(args=['file', 'whatever.jpg'])
@@ -84,7 +85,7 @@ def test_runner_command_dir():
 def test_runner_command_encode(capsys):
     r = mk(MK_IN)
     r.runs('encode')
-    assert capsys.readouterr().out == MK_V3 + '\n'
+    assert capsys.readouterr().out == MK_V4 + '\n'
     assert not r.report
 
 def test_runner_command_encoder(capsys):
@@ -103,7 +104,7 @@ def test_runner_command_encoder_name_partial():
     r = mk()
     r.runs('value')
     assert r.m.encoder.get() == enc.value
-    assert r.m.decoder.get() == enc.v3
+    assert r.m.decoder.get() == enc.v4
 
 def test_runner_command_encoder_unknown():
     r = mk()
@@ -113,7 +114,7 @@ def test_runner_command_encoder_unknown():
 def test_runner_command_extract():
     r = mk(MK_IN)
     r.runs('extract w,x')
-    assert r.m.encode() == '[x=2; x=1]'
+    assert r.m.encode() == '[x=2+1]'
 
 def test_runner_command_factory():
     r = mk()
@@ -130,13 +131,13 @@ def test_runner_command_factory_name():
 def test_runner_command_file():
     r = mk()
     r.run(['sfc', 'file', D1SFC, 'order', 'a,isbn,edition'])
-    assert r.m.encode('v3') == F1V3
-    assert r.m.filename('v3') == Path(D1V3)
+    assert r.m.encode('v4') == F1V4
+    assert r.m.filename('v4') == Path(D1V4)
 
 def test_runner_command_filename(capsys):
     r = mk(args=['sfc', 'file', D1SFC, 'order', 'a,isbn,edition', 'quiet'])
     r.runs('v3 filename')
-    assert capsys.readouterr().out == D1V3 + '\n'
+    assert capsys.readouterr().out == D1V4 + '\n'
     assert not r.report
 
 def test_runner_command_mode(capsys):
@@ -154,12 +155,12 @@ def test_runner_command_mode_name(capsys):
 def test_runner_command_order():
     r = mk(MK_IN)
     r.runs('order y,z')
-    assert r.m.encode() == '[y=Why; z=Z; z=Y; x=2; x=1]'
+    assert r.m.encode() == '[y=Why; z=Z+Y; x=2+1]'
 
 def test_runner_command_remove():
     r = mk(MK_IN)
     r.runs('remove y Why')
-    assert r.m.encode() == '[x=2; x=1; z=Z; z=Y]'
+    assert r.m.encode() == '[x=2+1; z=Z+Y]'
 
 def test_runner_command_rename(monkeypatch):
     r = mk(args=['decoder', 'sfc', 'file', D1SFC, 'order', 'a,isbn,edition'])
@@ -168,17 +169,17 @@ def test_runner_command_rename(monkeypatch):
     monkeypatch.setattr(Path, 'mkdir', fnattr.util.pytestutil.fake_fixed())
     r.runs('rename')
     assert result[0].args[0] == Path(D1SFC)
-    assert result[0].args[1] == Path(D1V3)
+    assert result[0].args[1] == Path(D1V4)
 
 def test_runner_command_rename_exists(monkeypatch):
-    r = mk(args=['file', D1V3, 'quiet'])
+    r = mk(args=['file', D1V4, 'quiet'])
     monkeypatch.setattr(Path, 'exists', lambda _: True)
     monkeypatch.setattr(Path, 'samefile', lambda _1, _2: False)
     with pytest.raises(FileExistsError):
         r.runs('rename')
 
 def test_runner_command_rename_samefile(monkeypatch):
-    r = mk(args=['file', D1V3, 'quiet'])
+    r = mk(args=['file', D1V4, 'quiet'])
     monkeypatch.setattr(Path, 'exists', lambda _: True)
     monkeypatch.setattr(Path, 'samefile', lambda _1, _2: True)
     r.runs('rename')
@@ -186,17 +187,17 @@ def test_runner_command_rename_samefile(monkeypatch):
 def test_runner_command_set():
     r = mk(MK_IN)
     r.runs('set x 7')
-    assert r.m.encode() == '[z=Z; z=Y; y=Why; x=7]'
+    assert r.m.encode() == '[z=Z+Y; y=Why; x=7]'
 
 def test_runner_command_sort_all():
     r = mk(MK_IN)
     r.runs('sort --all')
-    assert r.m.encode() == '[x=1; x=2; z=Y; z=Z; y=Why]'
+    assert r.m.encode() == '[x=1+2; z=Y+Z; y=Why]'
 
 def test_runner_command_sort_keys():
     r = mk(MK_IN)
     r.runs('sort w,x,y')
-    assert r.m.encode() == '[x=1; x=2; z=Z; z=Y; y=Why]'
+    assert r.m.encode() == '[x=1+2; z=Z+Y; y=Why]'
 
 def test_runner_command_suffix():
     r = mk(args=['file', 'whatever.jpg'])
@@ -232,7 +233,7 @@ def test_runner_need_token_empty():
         _ = r.need()
 
 def test_runner_uri(capsys):
-    r = mk(args=['decode', F1V3, 'quiet'])
+    r = mk(args=['decode', F1V4, 'quiet'])
     r.runs('uri')
     assert capsys.readouterr().out == 'urn:isbn:9780123456786\n'
 
@@ -253,7 +254,7 @@ def test_runner_url_string(capsys):
     assert capsys.readouterr().out == 'http://what/a/thing\n'
 
 def test_runner_url_none(capsys):
-    r = mk(args=['decode', F1V3, 'quiet'])
+    r = mk(args=['decode', F1V4, 'quiet'])
     r.runs('url')
     assert not capsys.readouterr().out
 

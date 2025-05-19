@@ -65,7 +65,7 @@ def test_configure_sites():
 def test_m_construct_vljumap():
     m = M().add('key', 'value').add('key', 'two')
     mm = M(m)
-    assert mm.encode() == '[key=value; key=two]'
+    assert mm.encode() == '[key=value+two]'
 
 def test_m_construct_file():
     m = M(File('/blah/Title [isbn=1234567890].pdf'))
@@ -96,7 +96,7 @@ def test_m_construct_other():
 
 def test_m_add_string():
     m = M().add('key', 'value').add('key', 'two')
-    assert m.encode() == '[key=value; key=two]'
+    assert m.encode() == '[key=value+two]'
 
 def test_m_add_vlju():
     m = M().add('key', TstVlju('value'))
@@ -254,25 +254,25 @@ def test_m_rename_dryrun():
 
 def test_m_remove_one():
     m = M().decode('[x=1; x=2; x=3; z=a]').remove('x', '2')
-    assert str(m) == '[x=1; x=3; z=a]'
+    assert str(m) == '[x=1+3; z=a]'
 
 def test_m_remove_all():
-    m = M().decode('[x=1; x=2; x=3; z=a]').remove('x')
+    m = M().decode('[x=1+2+3; z=a]').remove('x')
     assert str(m) == '[z=a]'
 
 def test_m_set():
     m = M().add('key', 'one').add('key', 'two')
-    assert m.encode() == '[key=one; key=two]'
+    assert m.encode() == '[key=one+two]'
     m.reset('key', 'value')
     assert m.encode() == '[key=value]'
 
 def test_m_sort_all():
     m = M().decode('[x=3; x=2; x=1; z=b; z=a]').sort()
-    assert str(m) == '[x=1; x=2; x=3; z=a; z=b]'
+    assert str(m) == '[x=1+2+3; z=a+b]'
 
 def test_m_sort_one():
     m = M().decode('[x=3; x=2; x=1; z=b; z=a]').sort('x')
-    assert str(m) == '[x=1; x=2; x=3; z=b; z=a]'
+    assert str(m) == '[x=1+2+3; z=b+a]'
 
 def test_m_str():
     m = M().add('isbn', '1234567890')

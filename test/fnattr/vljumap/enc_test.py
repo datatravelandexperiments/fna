@@ -25,6 +25,7 @@ CASES = {
                 ('date', '2007'),
                 ('isbn', '0123456789'),
             ], TstEncVlju.factory),
+        'v4': ('1. [edition=2; date=2007; isbn=0123456789]'),
         'v3': ('1. [edition=2; date=2007; isbn=0123456789]'),
         'v2': ('1. {edition=2;date=2007;isbn=0123456789}'),
         'v1': ('[n=1,edition=2,date=2007,isbn=0123456789]'),
@@ -54,6 +55,7 @@ CASES = {
     },
     'B': {
         'MAP': VljuMap().add_pairs([('a', 'Author, A')], TstEncVlju.factory),
+        'v4': ('[a=Author, A]'),
         'v3': ('[a=Author, A]'),
         'v2': ('{a=Author, A}'),
         'v1': ('Author, A:'),
@@ -72,6 +74,7 @@ CASES = {
         'MAP':
             VljuMap().add_pairs([('title', 'About Things')],
                                 TstEncVlju.factory),
+        'v4': ('About Things'),
         'v3': ('About Things'),
         'v2': ('About Things'),
         'v1': ('About Things'),
@@ -102,6 +105,9 @@ CASES = {
                 ('n', '5'),
                 ('t', '12:34:56'),
             ], TstEncVlju.factory),
+        'v4': ('3.5. What? - Strange %2D a subtitle? '
+               '[a=Paul Penman+Writer, W; edition=2; date=2007;'
+               ' isbn=9780123456786; lccn=89-456; special; t=12:34:56]'),
         'v3': ('3.5. What? - Strange %2D a subtitle? '
                '[a=Paul Penman; a=Writer, W; edition=2; date=2007;'
                ' isbn=9780123456786; lccn=89-456; special; t=12:34:56]'),
@@ -188,6 +194,7 @@ CASES = {
                 ('title', 'Mr. Book'),
                 ('lccn', '89-456'),
             ], TstEncVlju.factory),
+        'v4': ('Mr. Book [a=Paul Penman+Writer, W; lccn=89-456]'),
         'v3': ('Mr. Book [a=Paul Penman; a=Writer, W; lccn=89-456]'),
         'v2': ('Mr. Book {a=Paul Penman;a=Writer, W;lccn=89-456}'),
         'v1': ('Paul Penman; Writer, W: Mr. Book [lccn=89-456]'),
@@ -214,23 +221,24 @@ def test_decode(m, v, e):
     if v in enc.encoder:
         assert enc.encoder[v].decode(VljuMap(), e, TstEncVlju.factory) == m
 
-def test_v3_encode_doi():
+def test_v4_encode_doi():
     m = VljuMap().add('doi', DOI('10.12345/67890'))
-    assert enc.v3.encode(m, None) == '[doi=10.12345,67890]'
+    assert enc.v4.encode(m, None) == '[doi=10.12345,67890]'
 
-def test_v3_decode_title_only():
-    v = enc.v3.decode(VljuMap(), 'Title', TstEncVlju.factory)['title'][0]
+def test_v4_decode_title_only():
+    v = enc.v4.decode(VljuMap(), 'Title', TstEncVlju.factory)['title'][0]
     assert str(v) == 'Title'
+
+def test_v4_decode_empty_key():
+    assert enc.v4.decode(VljuMap(), '[=1]', TstEncVlju.factory) == VljuMap()
 
 def test_v3_decode_missing_close():
     with pytest.warns(UserWarning, match='Expected'):
         assert enc.v3.decode(VljuMap(), CASES['A']['v3'][:-1],
                              TstEncVlju.factory) == CASES['A']['MAP']
 
-def test_v3_decode_empty_key():
-    assert enc.v3.decode(VljuMap(), '[=1]', TstEncVlju.factory) == VljuMap()
-
 @pytest.mark.parametrize(('e', 'config'), [
+    (enc.v4, enc.V4_CONFIG),
     (enc.v3, enc.V3_CONFIG),
     (enc.v2, enc.V2_CONFIG),
     (enc.win, enc.WIN_CONFIG),

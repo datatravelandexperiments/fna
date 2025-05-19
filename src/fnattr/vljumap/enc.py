@@ -83,23 +83,24 @@ def _register_encoder(e: Encoder) -> Encoder:
 
 ###############################################################################
 #
-# V3 Encoder
+# V4 Encoder
 #
 ###############################################################################
 
-V3_DESC = 'Default.'
+V4_DESC = 'Default.'
 
-V3_GRAMMAR = """
-    v3        → v3seq «‘ ’» v3title «‘ ’» v3attrs
-    v3title   → [title [‘ - ’ title]*]
-    v3attrs   → [‘[’ v3kv [‘; ’ v3kv]* ‘]’]
-    v3kv      → k ‘=’ v
-    v3seq     → [digit (alnum | ‘.’)* ‘.’]
+V4_GRAMMAR = """
+    v4        → v4seq «‘ ’» v4title «‘ ’» v4attrs
+    v4title   → [title [‘ - ’ title]*]
+    v4attrs   → [‘[’ v4kv [‘; ’ v4kv]* ‘]’]
+    v4kv      → k ‘=’ v4values
+    v4values  → v [‘+’ v]*
+    v4seq     → [digit (alnum | ‘.’)* ‘.’]
     a «j» b   → (a | b | ajb)
 """
 
-V3_DESCRIPTION = """
-  Encoder format v3 consists, in order, of optional sequence numbers,
+V4_DESCRIPTION = """
+  Encoder format v4 consists, in order, of optional sequence numbers,
   optional title and subtitles, and optional attributes.
 
   Sequence numbers begin with a digit and end with a period. Multiple sequence
@@ -109,75 +110,91 @@ V3_DESCRIPTION = """
 
   Attributes are surrounded by ‘[ … ]’ and separated by ‘;’. (A space follows
   each semicolon when encoding, but is not required when decoding.) Each
-  attribute consists of a key, optionally followed by ‘=’ and a value.
+  attribute consists of a key, optionally followed by ‘=’ and a sequence
+  of values separated by ‘+’.
 
   Characters with special meaning to the encoding, or not allowed in file
   names, are represented using URL-style % encoding.
-""" + V3_GRAMMAR
+""" + V4_GRAMMAR
 
-class V3Config(NamedTuple):
-    """Properties used by V3 and variants."""
+class V4Config(NamedTuple):
+    """Properties used by V4 and variants."""
 
     quote: escape.Escape
+    aquote: escape.Escape | None = None
     attr_start: str = '['
     attr_end: str = ']'
     attr_join: str = '; '
     attr_kv: str = '='
+    attr_end_optional: bool = False
     title_join: str = ' - '
     seq_start: str = ''
     seq_end: str = '.'
     seq_join: str = '.'
+    val_join: str | None = '+'
 
-V3_CONFIG = V3Config(
+V4_CONFIG = V4Config(
     quote=escape.Escape(
         escape.mkencode_urlish(escape.UNSAFE_ON_UNIX
-                               + '[];='), urllib.parse.unquote))
+                               + '[]'), urllib.parse.unquote),
+    aquote=escape.Escape(
+        escape.mkencode_urlish(escape.UNSAFE_ON_UNIX
+                               + '[];=+'), urllib.parse.unquote),
+    attr_end_optional=True)
 
-def v3_encode(n: VljuMap, mode: str | None = None) -> str:
-    return _v3_enc(V3_CONFIG, n, mode)
+def v4_encode(n: VljuMap, mode: str | None = None) -> str:
+    return _v4_enc(V4_CONFIG, n, mode)
 
-def v3_decode(n: VljuMap, s: str, factory: VljuFactory) -> VljuMap:
-    return _v3_dec(V3_CONFIG, n, s, factory)
+def v4_decode(n: VljuMap, s: str, factory: VljuFactory) -> VljuMap:
+    return _v4_dec(V4_CONFIG, n, s, factory)
 
-def v3_decode_file(n: VljuMap, p: Path,
+def v4_decode_file(n: VljuMap, p: Path,
                    factory: VljuFactory) -> DecodeFileResult:
-    return _v3_dec_file(V3_CONFIG, n, p, factory)
+    return _v4_dec_file(V4_CONFIG, n, p, factory)
 
-v3 = _register_encoder(
+v4 = _register_encoder(
     Encoder(
-        'v3',
-        v3_encode,
-        v3_decode,
-        v3_decode_file,
-        desc=V3_DESC,
-        description=V3_DESCRIPTION))
+        'v4',
+        v4_encode,
+        v4_decode,
+        v4_decode_file,
+        desc=V4_DESC,
+        description=V4_DESCRIPTION))
 
-def _v3_enc(config: V3Config, n: VljuMap, mode: str | None) -> str:
+def _v4_enc(config: V4Config, n: VljuMap, mode: str | None) -> str:
     m = n.to_strings(mode)
-    sequence = _v3_enc_sequence(config, m)
-    title = _v3_enc_title(config, m)
-    attrs = _v3_enc_attrs(config, m)
+    sequence = _v4_enc_sequence(config, m)
+    title = _v4_enc_title(config, m)
+    attrs = _v4_enc_attrs(config, m)
     return join_non_empty(' ', sequence, title, attrs)
 
-def _v3_enc_sequence(config: V3Config, m: MultiMap[str, str]) -> str:
+def _v4_enc_sequence(config: V4Config, m: MultiMap[str, str]) -> str:
     sequence = config.seq_join.join(m['n'])
     return sequence and f'{config.seq_start}{sequence}{config.seq_end}'
 
-def _v3_enc_title(config: V3Config, m: MultiMap[str, str]) -> str:
+def _v4_enc_title(config: V4Config, m: MultiMap[str, str]) -> str:
     title_qjoin = config.title_join.translate(
         escape.mktrans_urlish(config.title_join.strip()))
     return config.title_join.join(
         config.quote.encode(i).replace(config.title_join, title_qjoin)
         for i in m['title'])
 
-def _v3_enc_attrs(config: V3Config, m: MultiMap[str, str]) -> str:
-    attrs = config.attr_join.join(
-        kv_fmt(k, v, config.attr_kv, config.quote)
-        for k, v in m.pairs()
-        if k not in ('title', 'n'))
+def _v4_enc_attrs(config: V4Config, m: MultiMap[str, str]) -> str:
+    if config.val_join:
+        attributes = (
+            kv_fmtl(k, v, config.attr_kv, config.val_join,
+                    config.aquote or config.quote)
+            for k, v in m.lists()
+            if k not in ('title', 'n'))
+    else:
+        attributes = (
+            kv_fmt(k, v, config.attr_kv, config.aquote or config.quote)
+            for k, v in m.pairs()
+            if k not in ('title', 'n'))
+    attrs = config.attr_join.join(attributes)
     return attrs and f'{config.attr_start}{attrs}{config.attr_end}'
 
-def _v3_dec_file(config: V3Config, n: VljuMap, p: Path,
+def _v4_dec_file(config: V4Config, n: VljuMap, p: Path,
                  factory: VljuFactory) -> DecodeFileResult:
     bad_suffix = (
         config.attr_end in p.suffix
@@ -188,33 +205,33 @@ def _v3_dec_file(config: V3Config, n: VljuMap, p: Path,
     else:
         stem = p.stem
         suffix = p.suffix
-    _v3_dec(config, n, stem, factory)
+    _v4_dec(config, n, stem, factory)
     return DecodeFileResult(p.parent, stem, suffix)
 
-def _v3_dec(config: V3Config, n: VljuMap, s: str,
+def _v4_dec(config: V4Config, n: VljuMap, s: str,
             factory: VljuFactory) -> VljuMap:
-    return n.add_pairs(_v3_dec_iter(config, s), factory)
+    return n.add_pairs(_v4_dec_iter(config, s), factory)
 
-def _v3_dec_iter(config: V3Config, s: str) -> Iterable[tuple[str, str]]:
+def _v4_dec_iter(config: V4Config, s: str) -> Iterable[tuple[str, str]]:
     if config.attr_start in s:
         s, _, attr = s.partition(config.attr_start)
     else:
         attr = ''
     if s:
-        sequence, title = _v3_dec_seq(config, s)
+        sequence, title = _v4_dec_seq(config, s)
         for v in sequence:
             yield ('n', v)
         if title:
             for i in title.split(config.title_join):
                 yield ('title', escape.winfile.decode(i.strip()))
     if attr:
-        for k, v in _v3_dec_attr(config, attr):
+        for k, v in _v4_dec_attr(config, attr):
             yield (k, v)
 
-def _v3_dec_attr(config: V3Config, s: str) -> Iterable[tuple[str, str]]:
+def _v4_dec_attr(config: V4Config, s: str) -> Iterable[tuple[str, str]]:
     if s.endswith(config.attr_end):
         s = s[:-1]
-    else:
+    elif not config.attr_end_optional:
         warnings.warn(f"Expected '{config.attr_end}' after '{s}'", stacklevel=0)
     for kv in s.split(config.attr_join.strip()):
         if config.attr_kv in kv:
@@ -223,12 +240,15 @@ def _v3_dec_attr(config: V3Config, s: str) -> Iterable[tuple[str, str]]:
             k = kv
             v = ''
         k = escape.winfile.decode(k.strip())
-        v = escape.winfile.decode(v.strip())
         if not k:
             continue
-        yield (k, v)
+        if config.val_join and config.val_join in v:
+            for i in v.split(config.val_join):
+                yield (k, escape.winfile.decode(i.strip()))
+        else:
+            yield (k, escape.winfile.decode(v.strip()))
 
-def _v3_dec_seq(config: V3Config, s: str) -> tuple[Iterable[str], str]:
+def _v4_dec_seq(config: V4Config, s: str) -> tuple[Iterable[str], str]:
     # Not currently used by any encoding:
     # if config.seq_start:
     #     if not s.startswith(config.seq_start):
@@ -252,6 +272,47 @@ def _v3_dec_seq(config: V3Config, s: str) -> tuple[Iterable[str], str]:
 
 ###############################################################################
 #
+# V3 Encoder
+#
+# Same as V4 except that multiple values are expressed with multiple instances
+# of the key.
+#
+###############################################################################
+
+V3_DESC = 'Like v4, but single value per key instance.'
+V3_DESCRIPTION = """
+  This is the same as v4 encoding format, except that multi-valued keys are
+  expressed with multiple key-value pairs.
+"""
+
+V3_CONFIG = V4Config(
+    quote=escape.Escape(
+        escape.mkencode_urlish(escape.UNSAFE_ON_UNIX
+                               + '[];='), urllib.parse.unquote),
+    val_join=None)
+
+def v3_encode(n: VljuMap, mode: str | None = None) -> str:
+    return _v4_enc(V3_CONFIG, n, mode)
+
+def v3_decode(n: VljuMap, s: str, factory: VljuFactory) -> VljuMap:
+    return _v4_dec(V3_CONFIG, n, s, factory)
+
+def v3_decode_file(n: VljuMap, p: Path,
+                    factory: VljuFactory) -> DecodeFileResult:
+    return _v4_dec_file(V3_CONFIG, n, p, factory)
+
+v3 = _register_encoder(
+    Encoder(
+        'v3',
+        v3_encode,
+        v3_decode,
+        v3_decode_file,
+        desc=V3_DESC,
+        description=V3_DESCRIPTION))
+
+
+###############################################################################
+#
 # Windows Encoder
 #
 # Same as V3 except restricted to Windows file name characters.
@@ -264,20 +325,21 @@ WIN_DESCRIPTION = """
   are URL-escaped to comply with Windows file name limitations.
 """
 
-WIN_CONFIG = V3Config(
+WIN_CONFIG = V4Config(
     quote=escape.Escape(
         escape.mkencode_urlish(escape.UNSAFE_ON_WINDOWS
-                               + '[];='), urllib.parse.unquote))
+                               + '[];='), urllib.parse.unquote),
+    val_join=None)
 
 def win_encode(n: VljuMap, mode: str | None = None) -> str:
-    return _v3_enc(WIN_CONFIG, n, mode)
+    return _v4_enc(WIN_CONFIG, n, mode)
 
 def win_decode(n: VljuMap, s: str, factory: VljuFactory) -> VljuMap:
-    return _v3_dec(WIN_CONFIG, n, s, factory)
+    return _v4_dec(WIN_CONFIG, n, s, factory)
 
 def win_decode_file(n: VljuMap, p: Path,
                     factory: VljuFactory) -> DecodeFileResult:
-    return _v3_dec_file(WIN_CONFIG, n, p, factory)
+    return _v4_dec_file(WIN_CONFIG, n, p, factory)
 
 win = _register_encoder(
     Encoder(
@@ -315,23 +377,24 @@ V2_DESCRIPTION = """
   This is supported only to covert old file names.
 """ + V2_GRAMMAR
 
-V2_CONFIG = V3Config(
+V2_CONFIG = V4Config(
     quote=escape.Escape(
         escape.mkencode_urlish(escape.UNSAFE_ON_UNIX + '{};='),
         urllib.parse.unquote),
     attr_start='{',
     attr_join=';',
-    attr_end='}')
+    attr_end='}',
+    val_join=None)
 
 def v2_encode(n: VljuMap, mode: str | None = None) -> str:
-    return _v3_enc(V2_CONFIG, n, mode)
+    return _v4_enc(V2_CONFIG, n, mode)
 
 def v2_decode(n: VljuMap, s: str, factory: VljuFactory) -> VljuMap:
-    return _v3_dec(V2_CONFIG, n, s, factory)
+    return _v4_dec(V2_CONFIG, n, s, factory)
 
 def v2_decode_file(n: VljuMap, p: Path,
                    factory: VljuFactory) -> DecodeFileResult:
-    return _v3_dec_file(V2_CONFIG, n, p, factory)
+    return _v4_dec_file(V2_CONFIG, n, p, factory)
 
 v2 = _register_encoder(
     Encoder(
@@ -373,8 +436,8 @@ V1_DESCRIPTION = """
   due to the ambiguity between authors and titles with subtitles.
 """ + V1_GRAMMAR
 
-V1_CONFIG = V3Config(
-    escape.unixfile, attr_start='[', attr_end=']', attr_join=',')
+V1_CONFIG = V4Config(
+    escape.unixfile, attr_start='[', attr_end=']', attr_join=',', val_join=None)
 
 def v1_encode(n: VljuMap, mode: str | None = None) -> str:
     m = n.to_strings(mode)
@@ -398,7 +461,7 @@ def _v1_enc_author_title(m: MultiMap) -> str:
     title = ': '.join(i for i in m['title'])
     return spj(r, title)
 
-def _v1_dec_iter(config: V3Config, s: str) -> Iterable[tuple[str, str]]:
+def _v1_dec_iter(config: V4Config, s: str) -> Iterable[tuple[str, str]]:
     if '[' in s:
         s, a = s.split('[', 1)
     else:
@@ -406,7 +469,7 @@ def _v1_dec_iter(config: V3Config, s: str) -> Iterable[tuple[str, str]]:
     for k, v in _v1_dec_author_title(s):
         yield (k, v)
     if a:
-        for k, v in _v3_dec_attr(config, a):
+        for k, v in _v4_dec_attr(config, a):
             yield (k, v)
 
 def _v1_dec_author_title(s: str) -> Generator[tuple[str, str], None, None]:
@@ -506,13 +569,13 @@ EX1_DESCRIPTION = """
   names, are represented using URL-style % encoding.
 """ + EX1_GRAMMAR
 
-EX1_CONFIG = V3Config(
+EX1_CONFIG = V4Config(
     quote=escape.Escape(
-        escape.mkencode_urlish(escape.UNSAFE_ON_UNIX
-                               + '#+'), urllib.parse.unquote),
-        attr_start='#',
-        attr_end='#',
-        attr_join='+')
+        escape.mkencode_urlish(escape.UNSAFE_ON_UNIX + '#+'),
+        urllib.parse.unquote),
+    attr_start='#',
+    attr_end='#',
+    val_join='+')
 
 def ex1_encode(n: VljuMap, mode: str | None = None) -> str:
     return _ex1_enc(EX1_CONFIG, n, mode)
@@ -521,7 +584,7 @@ def ex1_decode(n: VljuMap, s: str, factory: VljuFactory) -> VljuMap:
     return _ex1_dec(EX1_CONFIG, n, s, factory)
 
 def ex1_decode_file(n: VljuMap, p: Path,
-                   factory: VljuFactory) -> DecodeFileResult:
+                    factory: VljuFactory) -> DecodeFileResult:
     return _ex1_dec_file(EX1_CONFIG, n, p, factory)
 
 ex1 = _register_encoder(
@@ -533,32 +596,32 @@ ex1 = _register_encoder(
         desc=EX1_DESC,
         description=EX1_DESCRIPTION))
 
-def _ex1_enc(config: V3Config, n: VljuMap, mode: str | None) -> str:
+def _ex1_enc(config: V4Config, n: VljuMap, mode: str | None) -> str:
     m = n.to_strings(mode)
-    sequence = _v3_enc_sequence(config, m)
-    title = _v3_enc_title(config, m)
+    sequence = _v4_enc_sequence(config, m)
+    title = _v4_enc_title(config, m)
     attrs = _ex1_enc_attrs(config, m)
     return join_non_empty(' ', sequence, title, attrs)
 
-def _ex1_enc_attrs(config: V3Config, m: MultiMap[str, str]) -> str:
+def _ex1_enc_attrs(config: V4Config, m: MultiMap[str, str]) -> str:
     attrs = ' '.join(
-        kv_fmtl(config.attr_start + k, v,
-                config.attr_kv, config.attr_join, config.quote)
+        kv_fmtl(config.attr_start
+                + k, v, config.attr_kv, config.val_join, config.quote)
         for k, v in m.lists()
         if k not in ('title', 'n'))
     return attrs
 
-def _ex1_dec(config: V3Config, n: VljuMap, s: str,
-            factory: VljuFactory) -> VljuMap:
+def _ex1_dec(config: V4Config, n: VljuMap, s: str,
+             factory: VljuFactory) -> VljuMap:
     return n.add_pairs(_ex1_dec_iter(config, s), factory)
 
-def _ex1_dec_iter(config: V3Config, s: str) -> Iterable[tuple[str, str]]:
+def _ex1_dec_iter(config: V4Config, s: str) -> Iterable[tuple[str, str]]:
     if config.attr_start in s:
         s, _, attr = s.partition(config.attr_start)
     else:
         attr = ''
     if s:
-        sequence, title = _v3_dec_seq(config, s)
+        sequence, title = _v4_dec_seq(config, s)
         for v in sequence:
             yield ('n', v)
         if title:
@@ -568,7 +631,7 @@ def _ex1_dec_iter(config: V3Config, s: str) -> Iterable[tuple[str, str]]:
         for k, v in _ex1_dec_attr(config, attr):
             yield (k, v)
 
-def _ex1_dec_attr(config: V3Config, s: str) -> Iterable[tuple[str, str]]:
+def _ex1_dec_attr(config: V4Config, s: str) -> Iterable[tuple[str, str]]:
     if s.endswith(config.attr_end):
         s = s[:-1]
     for kv in s.split(config.attr_start.strip()):
@@ -580,10 +643,14 @@ def _ex1_dec_attr(config: V3Config, s: str) -> Iterable[tuple[str, str]]:
         k = escape.winfile.decode(k.strip())
         if not k:
             continue
-        for i in v.split(config.attr_join):
-            yield (k, escape.winfile.decode(i.strip()))
+        if config.val_join in v:
+            for i in v.split(config.val_join):
+                yield (k, escape.winfile.decode(i.strip()))
+        else:
+            yield (k, escape.winfile.decode(v.strip()))
 
-def _ex1_dec_file(config: V3Config, n: VljuMap, p: Path,
+
+def _ex1_dec_file(config: V4Config, n: VljuMap, p: Path,
                   factory: VljuFactory) -> DecodeFileResult:
     bad_suffix = ((config.attr_start in p.suffix)
                   or (config.attr_end and config.attr_end in p.suffix))
