@@ -162,8 +162,8 @@ Page(s) in a paginated work (_convention_).
 
 [Pixiv](https://www.pixiv.net/) item. (_configured_)
 
-- Accepted values: _id_ or _id_`_p`_item_ or long form URL
-- Representation: _id_`_p`_item_
+- Accepted values: _id_[`,`_item_] or _id_`_p`_item_ or long form URL
+- Representation: _id_[`,`_item_]
 - Long form: `https://www.pixiv.net/en/artworks/`_id_[`#`_item_]
 
 This is not defined within `fna`,

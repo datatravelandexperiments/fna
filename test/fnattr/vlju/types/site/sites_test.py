@@ -43,7 +43,7 @@ CASES = [
         'inp':
             '90647064',
         'val':
-            '90647064_p0',
+            '90647064',
         'scheme':
             'https',
         'host':
@@ -56,7 +56,7 @@ CASES = [
     {
         'cls': Pixiv,
         'inp': '52112383_p4',
-        'val': '52112383_p4',
+        'val': '52112383,4',
         'scheme': 'https',
         'host': 'www.pixiv.net',
         'path': 'en/artworks/52112383#5',
