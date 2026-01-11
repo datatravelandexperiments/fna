@@ -93,6 +93,7 @@ addopts = "--tb=native"
 src = ["src"]
 namespace-packages = ["src/extra"]
 line-length = 80
+exclude = ["src/fnattr/extra"]
 
 [tool.ruff.lint]
 allowed-confusables = ["‘", "’", "–", "—", "‹", "›", "ı", "′", "″", "¦", "·"]
@@ -109,6 +110,7 @@ ignore = [
     "D107",     # undocumented-public-init: We know what it's for.
     "D203",     # one-blank-line-before-class: Conflicts with D211.
     "D212",     # multi-line-summary-first-line: Conflicts with D213.
+    "LOG015",   # root-logger-call
     "PD",       # pandas-vet: Not using Pandas.
     "PLR0911",  # too-many-return-statements: Be direct.
     "PLR0912",  # too-many-branches: Be direct.

@@ -36,7 +36,7 @@ def opener(file: PathLike | None,
     if file is None or file == '-':
         return IOState(default, opened=False)
     if isinstance(file, io.IOBase | IO):
-        return IOState(cast(IO, file), opened=False)
+        return IOState(cast('IO', file), opened=False)
     return IOState(
         Path(file).open(mode, encoding=encoding, **kwargs), opened=True)
 

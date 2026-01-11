@@ -30,8 +30,7 @@ class Authority:
             self.host = host.host
             self.port = host.port
         elif isinstance(host, str):
-            if host.startswith('//'):
-                host = host[2 :]
+            host = host.removeprefix('//')
             if '@' in host:
                 up, host = host.split('@', 1)
                 if ':' in up:
