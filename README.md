@@ -113,6 +113,7 @@ standard library `shlex` module provided input file tokenization ‘for free’
 
 `fna` aims for 100% unit test coverage (outside of `extra/`)
 and full type annotation (outside of unit tests).
+It is currently tested on Python versions 3.11 through 3.14.
 
 ### src/util
 
