@@ -104,7 +104,7 @@ See [doc/configuration.md](doc/configuration.md) for more information.
 ## Implementation
 
 The current public home for `fna` is
-[https://codeberg.org/datatravelandexperiments/fna](https://codeberg.org/datatravelandexperiments/fna)
+[https://github.com/datatravelandexperiments/fna](https://github.com/datatravelandexperiments/fna)
 
 `fna` is written in Python primarily because (in the original version) the
 standard library `shlex` module provided input file tokenization ‘for free’

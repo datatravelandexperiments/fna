@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fnattr"
-version = "0.2.10"
+version = "0.2.11"
 description = "Manage key/value metadata in file names."
 license.text = "MIT License"
 readme = "README.md"
@@ -29,7 +29,7 @@ fna = "fnattr.fna:main"
 fnaffle = "fnattr.extra.fnaffle:main"
 
 [project.urls]
-repository = "https://codeberg.org/datatravelandexperiments/fna"
+repository = "https://github.com/datatravelandexperiments/fna"
 
 [tool.coverage.run]
 omit = ["/usr/*"]
